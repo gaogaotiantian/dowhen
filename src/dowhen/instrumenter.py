@@ -5,11 +5,8 @@ from __future__ import annotations
 
 import sys
 from collections import defaultdict
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
-    from .event_handler import EventHandler
-
+from .event_handler import EventHandler
 
 E = sys.monitoring.events
 

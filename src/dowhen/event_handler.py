@@ -5,11 +5,9 @@
 from __future__ import annotations
 
 from types import FrameType
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:  # pragma: no cover
-    from .callback import Callback
-    from .event import Event
+from .callback import Callback
+from .event import Event
 
 
 class EventHandler:

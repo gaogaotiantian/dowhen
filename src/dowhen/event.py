@@ -7,7 +7,6 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType
 from typing import TYPE_CHECKING, Literal
 
-from .instrumenter import Instrumenter
 from .util import call_in_frame, get_line_number
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -63,12 +62,12 @@ class Event:
 
         return cls(code, "line", {"line_number": line_number}, condition=condition)
 
-    def do(self, func: str | Callable) -> EventHandler:
+    def do(self, func: str | Callable) -> "EventHandler":
         from .callback import Callback
 
         return self._submit_callback(Callback(func))
 
-    def goto(self, target: str | int) -> EventHandler:
+    def goto(self, target: str | int) -> "EventHandler":
         from .callback import Callback
 
         return self._submit_callback(Callback.goto(target))
@@ -86,10 +85,12 @@ class Event:
 
         assert False, "Unknown condition type"  # pragma: no cover
 
-    def _submit_callback(self, callback: Callback) -> EventHandler:
+    def _submit_callback(self, callback: "Callback") -> "EventHandler":
         from .event_handler import EventHandler
 
         handler = EventHandler(self, callback)
+        from .instrumenter import Instrumenter
+
         Instrumenter().submit(handler)
         return handler
 

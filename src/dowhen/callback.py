@@ -12,7 +12,6 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType
 from typing import TYPE_CHECKING
 
-from .instrumenter import Instrumenter
 from .util import call_in_frame, get_line_number
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -94,13 +93,17 @@ class Callback:
         entity: CodeType | FunctionType | MethodType,
         identifier: str | int | tuple | list,
         condition: str | Callable[..., bool] | None = None,
-    ) -> EventHandler:
+    ) -> "EventHandler":
         from .event import when
 
         event = when(entity, identifier, condition=condition)
+
         from .event_handler import EventHandler
 
         handler = EventHandler(event, self)
+
+        from .instrumenter import Instrumenter
+
         Instrumenter().submit(handler)
 
         return handler
