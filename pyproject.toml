@@ -29,4 +29,4 @@ Homepage = "https://github.com/gaogaotiantian/dowhen"
 version = {attr = "dowhen.__version__"}
 
 [tool.ruff]
-lint.select = ["I"]
+lint.select = ["F", "I"]

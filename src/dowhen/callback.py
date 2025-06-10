@@ -2,17 +2,25 @@
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
 
+from __future__ import annotations
+
 import ctypes
 import inspect
 import sys
 import warnings
+from collections.abc import Callable
+from types import CodeType, FrameType, FunctionType, MethodType
+from typing import TYPE_CHECKING
 
 from .instrumenter import Instrumenter
 from .util import call_in_frame, get_line_number
 
+if TYPE_CHECKING:  # pragma: no cover
+    from .event_handler import EventHandler
+
 
 class Callback:
-    def __init__(self, func, **kwargs):
+    def __init__(self, func: str | Callable, **kwargs):
         if isinstance(func, str):
             pass
         elif inspect.isfunction(func):
@@ -40,10 +48,12 @@ class Callback:
             LocalsToFast.argtypes = [ctypes.py_object, ctypes.c_int]
             LocalsToFast(frame, 0)
 
-    def call_code(self, frame):
+    def call_code(self, frame: FrameType) -> None:
+        assert isinstance(self.func, str)
         exec(self.func, frame.f_globals, frame.f_locals)
 
-    def call_function(self, frame):
+    def call_function(self, frame: FrameType) -> None:
+        assert isinstance(self.func, (FunctionType, MethodType))
         writeback = call_in_frame(self.func, frame)
 
         f_locals = frame.f_locals
@@ -58,7 +68,7 @@ class Callback:
                 f"got {type(writeback)} instead."
             )
 
-    def call_goto(self, frame):  # pragma: no cover
+    def call_goto(self, frame: FrameType) -> None:  # pragma: no cover
         # Changing frame.f_lineno is only allowed in trace functions so it's
         # impossible to get coverage for this function
         target = self.kwargs["target"]
@@ -68,20 +78,26 @@ class Callback:
         with warnings.catch_warnings():
             # This gives a RuntimeWarning in Python 3.12
             warnings.simplefilter("ignore", RuntimeWarning)
-            frame.f_lineno = line_number
+            # mypy thinks f_lineno is read-only
+            frame.f_lineno = line_number  # type: ignore
 
     @classmethod
-    def do(cls, func):
+    def do(cls, func: str | Callable) -> Callback:
         return cls(func)
 
     @classmethod
-    def goto(cls, target):
+    def goto(cls, target: str | int) -> Callback:
         return cls("goto", target=target)
 
-    def when(self, entity, identifier):
+    def when(
+        self,
+        entity: CodeType | FunctionType | MethodType,
+        identifier: str | int | tuple | list,
+        condition: str | Callable[..., bool] | None = None,
+    ) -> EventHandler:
         from .event import when
 
-        event = when(entity, identifier)
+        event = when(entity, identifier, condition=condition)
         from .event_handler import EventHandler
 
         handler = EventHandler(event, self)

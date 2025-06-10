@@ -3,20 +3,38 @@
 
 
 import inspect
+from collections.abc import Callable
+from types import CodeType, FrameType, FunctionType, MethodType
+from typing import TYPE_CHECKING, Literal
 
 from .instrumenter import Instrumenter
 from .util import call_in_frame, get_line_number
 
+if TYPE_CHECKING:  # pragma: no cover
+    from .callback import Callback
+    from .event_handler import EventHandler
+
 
 class Event:
-    def __init__(self, code, event_type, event_data, condition=None):
+    def __init__(
+        self,
+        code: CodeType,
+        event_type: Literal["line", "start", "return"],
+        event_data: dict | None,
+        condition: str | Callable[..., bool] | None = None,
+    ):
         self.code = code
         self.event_type = event_type
         self.event_data = event_data
         self.condition = condition
 
     @classmethod
-    def when(cls, entity, identifier, condition=None):
+    def when(
+        cls,
+        entity: CodeType | FunctionType | MethodType,
+        identifier: str | int | tuple | list,
+        condition: str | Callable[..., bool] | None = None,
+    ):
         if inspect.isfunction(entity):
             code = entity.__code__
         elif inspect.iscode(entity):
@@ -27,7 +45,7 @@ class Event:
         if isinstance(condition, str):
             try:
                 compile(condition, "<string>", "eval")
-            except SyntaxError as e:
+            except SyntaxError:
                 raise ValueError(f"Invalid condition expression: {condition}")
         elif condition is not None and not callable(condition):
             raise TypeError(
@@ -45,17 +63,17 @@ class Event:
 
         return cls(code, "line", {"line_number": line_number}, condition=condition)
 
-    def do(self, func):
+    def do(self, func: str | Callable) -> EventHandler:
         from .callback import Callback
 
         return self._submit_callback(Callback(func))
 
-    def goto(self, target):
+    def goto(self, target: str | int) -> EventHandler:
         from .callback import Callback
 
         return self._submit_callback(Callback.goto(target))
 
-    def should_fire(self, frame):
+    def should_fire(self, frame: FrameType) -> bool:
         if self.condition is None:
             return True
         try:
@@ -63,12 +81,12 @@ class Event:
                 return eval(self.condition, frame.f_globals, frame.f_locals)
             elif callable(self.condition):
                 return call_in_frame(self.condition, frame)
-        except Exception as e:
+        except Exception:
             return False
 
         assert False, "Unknown condition type"  # pragma: no cover
 
-    def _submit_callback(self, callback):
+    def _submit_callback(self, callback: Callback) -> EventHandler:
         from .event_handler import EventHandler
 
         handler = EventHandler(self, callback)

@@ -47,7 +47,7 @@ def test_remove():
         return x
 
     def change(x):
-        x = 1
+        return {"x": 1}
 
     handler = dowhen.do(change).when(f, "return x")
     handler.remove()

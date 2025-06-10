@@ -4,9 +4,12 @@
 
 import functools
 import inspect
+from collections.abc import Callable
+from types import CodeType, FrameType
+from typing import Any
 
 
-def get_line_number(code, identifier):
+def get_line_number(code: CodeType, identifier: int | str | list | tuple) -> int | None:
     if not isinstance(identifier, (list, tuple)):
         identifier = [identifier]
 
@@ -43,11 +46,11 @@ def get_line_number(code, identifier):
 
 
 @functools.lru_cache(maxsize=256)
-def get_func_args(func):
+def get_func_args(func: Callable) -> list[str]:
     return inspect.getfullargspec(func).args
 
 
-def call_in_frame(func, frame):
+def call_in_frame(func: Callable, frame: FrameType) -> Any:
     f_locals = frame.f_locals
     args = []
     for arg in get_func_args(func):
