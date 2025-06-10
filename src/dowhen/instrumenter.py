@@ -115,21 +115,21 @@ class Instrumenter:
         if event_handler in handlers:
             handlers.remove(event_handler)
 
-        if event.event_type == "line" and not handlers:
-            del self.handlers[event.code]["line"][event.event_data["line_number"]]
+            if event.event_type == "line" and not handlers:
+                del self.handlers[event.code]["line"][event.event_data["line_number"]]
 
-        if not self.handlers[event.code][event.event_type]:
-            del self.handlers[event.code][event.event_type]
-            events = sys.monitoring.get_local_events(self.tool_id, event.code)
-            removed_event = {
-                "line": E.LINE,
-                "start": E.PY_START,
-                "return": E.PY_RETURN,
-            }[event.event_type]
+            if not self.handlers[event.code][event.event_type]:
+                del self.handlers[event.code][event.event_type]
+                events = sys.monitoring.get_local_events(self.tool_id, event.code)
+                removed_event = {
+                    "line": E.LINE,
+                    "start": E.PY_START,
+                    "return": E.PY_RETURN,
+                }[event.event_type]
 
-            sys.monitoring.set_local_events(
-                self.tool_id, event.code, events & ~removed_event
-            )
+                sys.monitoring.set_local_events(
+                    self.tool_id, event.code, events & ~removed_event
+                )
 
 
 def clear_all():
