@@ -86,3 +86,14 @@ def test_invalid_type():
 
     with pytest.raises(TypeError):
         dowhen.when(f, 1.5)
+
+
+def test_invalid_line_number():
+    def f():
+        pass
+
+    with pytest.raises(ValueError):
+        dowhen.when(f, 1000)
+
+    with pytest.raises(ValueError):
+        dowhen.when(f, "+1000")

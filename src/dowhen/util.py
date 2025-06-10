@@ -33,4 +33,9 @@ def get_line_number(code, identifier):
         elif agreed_line_number != line_number:
             return None
 
+    if agreed_line_number is not None:
+        if agreed_line_number not in (line[2] for line in code.co_lines()):
+            # Need to check if agreed_line_number is indeed in the code object
+            return None
+
     return agreed_line_number
