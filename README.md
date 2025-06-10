@@ -31,10 +31,11 @@ An event is a specific time to trigger the callback.
 
 ### `when`
 
-`when` takes an `entity` and an `identifier`.
+`when` takes an `entity`, an `identifier` and an optional `condition`.
 
 * `entity` - a function, method or code object
 * `identifier` - something to locate a specific line or a special event
+* `condition` - an expression or a function to determine whether the event should fire
 
 #### `identifier`
 
@@ -59,6 +60,28 @@ Or you can fire the callback at special events like function start/return
 ```python
 when(f, "<start>")
 when(f, "<return>")
+```
+
+#### condition
+
+`condition` takes a string expression or a function that evaluates to a
+`bool`. It will be evaluated for every event and the event will only
+fire when `condition` evaluates to `True`.
+
+If a function is used, the magic local variable mapping as `do`
+will also be applied.
+
+```python
+from dowhen import when
+
+def f(x):
+    return x
+
+# Same as when(f, "return x", condition=lambda x: x == 0).do("x = 1")
+when(f, "return x", condition="x == 0").do("x = 1")
+
+assert f(0) == 1
+assert f(2) == 2
 ```
 
 ## Callback

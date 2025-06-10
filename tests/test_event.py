@@ -1,6 +1,7 @@
 # Licensed under the Apache License: http://www.apache.org/licenses/LICENSE-2.0
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
+import sys
 
 import pytest
 
@@ -75,6 +76,48 @@ def test_goto():
 
     dowhen.when(f, "assert False").goto("x = 1")
     assert f() == 1
+
+
+def test_condition():
+    def f(x):
+        return x
+
+    dowhen.when(f, "return x", condition="x == 0").do("x = 1")
+
+    assert f(0) == 1
+    assert f(2) == 2
+
+    dowhen.clear_all()
+
+    dowhen.when(f, "return x", condition=lambda x: x == 0).do("x = 1")
+    assert f(0) == 1
+    assert f(2) == 2
+
+    dowhen.clear_all()
+
+    with pytest.raises(ValueError):
+        dowhen.when(f, "return x", condition="x ==")
+
+    with pytest.raises(TypeError):
+        dowhen.when(f, "return x", condition=1.5)
+
+
+def test_should_fire():
+    def f(x):
+        return x
+
+    frame = sys._getframe()
+
+    for event in (
+        dowhen.when(f, "return x", condition="x == 0"),
+        dowhen.when(f, "return x", condition=lambda x: x == 0),
+    ):
+        x = 0
+        assert event.should_fire(frame) is True
+        x = 1
+        assert event.should_fire(frame) is False
+        del x
+        assert event.should_fire(frame) is False
 
 
 def test_invalid_type():

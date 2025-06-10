@@ -8,7 +8,7 @@ import sys
 import warnings
 
 from .instrumenter import Instrumenter
-from .util import get_line_number
+from .util import call_in_frame, get_line_number
 
 
 class Callback:
@@ -44,17 +44,9 @@ class Callback:
         exec(self.func, frame.f_globals, frame.f_locals)
 
     def call_function(self, frame):
-        f_locals = frame.f_locals
-        args = []
-        for arg in self.func_args:
-            if arg == "_frame":
-                args.append(frame)
-                continue
-            if arg not in f_locals:
-                raise TypeError(f"Argument '{arg}' not found in frame locals.")
-            args.append(f_locals[arg])
-        writeback = self.func(*args)
+        writeback = call_in_frame(self.func, frame)
 
+        f_locals = frame.f_locals
         if isinstance(writeback, dict):
             for arg, val in writeback.items():
                 if arg not in f_locals:

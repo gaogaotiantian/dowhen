@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -33,7 +34,5 @@ class EventHandler:
         self.removed = True
 
     def __call__(self, frame):
-        if self.enabled:
+        if self.enabled and self.event.should_fire(frame):
             self.callback(frame)
-        else:
-            return

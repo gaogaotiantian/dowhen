@@ -2,6 +2,7 @@
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
 
+import functools
 import inspect
 
 
@@ -39,3 +40,21 @@ def get_line_number(code, identifier):
             return None
 
     return agreed_line_number
+
+
+@functools.lru_cache(maxsize=256)
+def get_func_args(func):
+    return inspect.getfullargspec(func).args
+
+
+def call_in_frame(func, frame):
+    f_locals = frame.f_locals
+    args = []
+    for arg in get_func_args(func):
+        if arg == "_frame":
+            args.append(frame)
+            continue
+        if arg not in f_locals:
+            raise TypeError(f"Argument '{arg}' not found in frame locals.")
+        args.append(f_locals[arg])
+    return func(*args)
