@@ -8,4 +8,4 @@ from .callback import do, goto
 from .event import when
 from .instrumenter import clear_all
 
-__all__ = ["clear_all", "do", "when"]
+__all__ = ["clear_all", "do", "goto", "when"]
