@@ -54,3 +54,6 @@ def test_remove():
     assert handler.removed is True
 
     assert f(0) == 0
+
+    # double remove should be safe
+    handler.remove()
