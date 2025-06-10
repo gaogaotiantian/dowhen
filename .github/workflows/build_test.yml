@@ -1,0 +1,37 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build_test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-14]
+        python-version: ['3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: pip install -r requirements-dev.txt
+    - name: Build
+      run: python -m build
+    - name: Install
+      run: pip install .
+    - name: Test
+      run: pytest --cov=dowhen --cov-report=xml:coverage.xml tests
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        slug: gaogaotiantian/dowhen
+        file: ./coverage.xml
