@@ -155,6 +155,13 @@ assert f(0) == 1
 handler2.remove()
 ```
 
+Or you can remove all the instrumentation by
+
+```python
+from dowhen import clear_all
+clear_all()
+```
+
 ## FAQ
 
 #### Why we need this?
