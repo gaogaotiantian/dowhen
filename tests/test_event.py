@@ -67,7 +67,6 @@ def test_start_return():
 
 
 def test_goto():
-
     def f():
         x = 0
         assert False

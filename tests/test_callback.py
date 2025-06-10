@@ -121,7 +121,6 @@ def test_callback_invalid_type():
 
 
 def test_frame():
-
     def f(x):
         return x
 
@@ -133,11 +132,11 @@ def test_frame():
 
 
 def test_goto():
-
     def f():
         x = 0
         assert False
         x = 1
         return x
+
     dowhen.goto("x = 1").when(f, "assert False")
     assert f() == 1

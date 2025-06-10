@@ -36,14 +36,17 @@ class Event:
 
     def do(self, func):
         from .callback import Callback
+
         return self._submit_callback(Callback(func))
 
     def goto(self, target):
         from .callback import Callback
+
         return self._submit_callback(Callback.goto(target))
 
     def _submit_callback(self, callback):
         from .event_handler import EventHandler
+
         handler = EventHandler(self, callback)
         Instrumenter().submit(handler)
         return handler

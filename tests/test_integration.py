@@ -6,7 +6,6 @@ import dowhen
 
 
 def test_clear_all():
-    
     def f(x):
         return x
 
