@@ -67,6 +67,23 @@ def test_start_return():
     assert return_value == 0
 
 
+def test_every_line():
+    def f(x):
+        x = 1
+        x = 2
+        x = 3
+        return x
+
+    lst = []
+
+    def cb(x):
+        lst.append(x)
+
+    dowhen.when(f).do(cb)
+    f(0)
+    assert lst == [0, 1, 2, 3]
+
+
 def test_goto():
     def f():
         x = 0

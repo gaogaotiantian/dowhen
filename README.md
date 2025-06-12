@@ -55,6 +55,20 @@ when(f, "ret")
 when(f, "return x")
 ```
 
+A special case would be when you want to trigger the event on every line.
+You can pass `None` as the identifier.
+
+```python
+def f(x):
+    x = 1
+    x = 2
+    return x
+
+# Will print 0, 1, 2 in each line
+do("print(x)").when(f, None)
+f(0)
+```
+
 Or you can fire the callback at special events like function start/return
 
 ```python

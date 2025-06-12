@@ -31,7 +31,7 @@ class Event:
     def when(
         cls,
         entity: CodeType | FunctionType | MethodType,
-        identifier: str | int | tuple | list,
+        identifier: str | int | tuple | list | None = None,
         condition: str | Callable[..., bool] | None = None,
     ):
         if inspect.isfunction(entity):
@@ -55,6 +55,9 @@ class Event:
             return cls(code, "start", {}, condition=condition)
         elif identifier == "<return>":
             return cls(code, "return", {}, condition=condition)
+
+        if identifier is None:
+            return cls(code, "line", {"line_number": None}, condition=condition)
 
         line_number = get_line_number(code, identifier)
         if line_number is None:

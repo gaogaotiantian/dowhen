@@ -91,7 +91,7 @@ class Callback:
     def when(
         self,
         entity: CodeType | FunctionType | MethodType,
-        identifier: str | int | tuple | list,
+        identifier: str | int | tuple | list | None = None,
         condition: str | Callable[..., bool] | None = None,
     ) -> "EventHandler":
         from .event import when

@@ -65,10 +65,13 @@ class Instrumenter:
 
     def line_callback(self, code, line_number):  # pragma: no cover
         if code in self.handlers:
-            for handler in self.handlers[code].get("line", {}).get(line_number, []):
-                handler(sys._getframe(1))
-        else:
-            return sys.monitoring.DISABLE
+            handlers = self.handlers[code].get("line", {}).get(line_number, [])
+            handlers.extend(self.handlers[code].get("line", {}).get(None, []))
+            if handlers:
+                for handler in handlers:
+                    handler(sys._getframe(1))
+                return
+        return sys.monitoring.DISABLE
 
     def register_start_event(self, code, event_handler: EventHandler):
         self.handlers[code].setdefault("start", []).append(event_handler)
@@ -79,10 +82,12 @@ class Instrumenter:
 
     def start_callback(self, code, offset):  # pragma: no cover
         if code in self.handlers:
-            for handler in self.handlers[code].get("start", []):
-                handler(sys._getframe(1))
-        else:
-            return sys.monitoring.DISABLE
+            handlers = self.handlers[code].get("start", [])
+            if handlers:
+                for handler in handlers:
+                    handler(sys._getframe(1))
+                return
+        return sys.monitoring.DISABLE
 
     def register_return_event(self, code, event_handler: EventHandler):
         self.handlers[code].setdefault("return", []).append(event_handler)
@@ -93,10 +98,12 @@ class Instrumenter:
 
     def return_callback(self, code, offset, retval):  # pragma: no cover
         if code in self.handlers:
-            for handler in self.handlers[code].get("return", []):
-                handler(sys._getframe(1))
-        else:
-            return sys.monitoring.DISABLE
+            handlers = self.handlers[code].get("return", [])
+            if handlers:
+                for handler in handlers:
+                    handler(sys._getframe(1))
+                return
+        return sys.monitoring.DISABLE
 
     def remove_handler(self, event_handler: EventHandler):
         event = event_handler.event
