@@ -168,13 +168,17 @@ def test_bp():
         sys.stdin = command_input
         sys.stdout = output
         dowhen.bp().when(f, "x = x + 1")
+        # coverage confuses pdb
+        sys.settrace(None)
         f(0)
         sys.settrace(_trace_func)
 
         sys.stdin = command_input2
         sys.stdout = output2
         dowhen.when(f, "return x").bp()
+        sys.settrace(None)
         f(0)
+        sys.settrace(_trace_func)
     finally:
         sys.settrace(_trace_func)
         sys.stdin = _stdin
