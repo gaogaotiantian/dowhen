@@ -29,9 +29,16 @@ jobs:
     - name: Install
       run: pip install .
     - name: Test
-      run: pytest --cov=dowhen --cov-report=xml:coverage.xml tests
+      run: pytest --cov=dowhen --cov-report=xml:coverage.xml --enable-coredumpy --coredumpy-dir ./coredumpy_data tests
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
       with:
         slug: gaogaotiantian/dowhen
         file: ./coverage.xml
+    - name: Upload coredumpy data if applicable
+      uses: gaogaotiantian/upload-coredumpy@v0.2
+      if: failure()
+      with:
+        name: coredumpy_data_${{ matrix.os }}_${{ matrix.python-version }}
+        path: ./coredumpy_data
+        retention-days: 7

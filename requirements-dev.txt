@@ -12,3 +12,4 @@ coverage
 # Test
 pytest
 pytest-cov
+coredumpy
