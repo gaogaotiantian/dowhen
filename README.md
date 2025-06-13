@@ -161,6 +161,21 @@ goto("return 0").when(f, "assert False")
 f()
 ```
 
+### bp
+
+`bp` (short for `breakpoint`) enters `pdb` at the event.
+
+```python
+from dowhen import bp
+
+def f(x):
+    return x
+
+bp().when(f, "return x")
+# enters pdb at `return x`
+f(0)
+```
+
 ## Handler
 
 When you combine an event with a callback, you get a handler.

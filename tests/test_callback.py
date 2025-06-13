@@ -2,7 +2,9 @@
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
 
+import io
 import sys
+import textwrap
 
 import pytest
 
@@ -140,3 +142,46 @@ def test_goto():
 
     dowhen.goto("x = 1").when(f, "assert False")
     assert f() == 1
+
+
+def test_bp():
+    def f(x):
+        x = x + 1
+        return x
+
+    command = textwrap.dedent("""
+        w
+        n
+        c
+    """)
+
+    command_input = io.StringIO(command)
+    command_input2 = io.StringIO(command)
+
+    output = io.StringIO()
+    output2 = io.StringIO()
+
+    _stdin = sys.stdin
+    _stdout = sys.stdout
+    _trace_func = sys.gettrace()
+    try:
+        sys.stdin = command_input
+        sys.stdout = output
+        dowhen.bp().when(f, "x = x + 1")
+        f(0)
+        sys.settrace(_trace_func)
+
+        sys.stdin = command_input2
+        sys.stdout = output2
+        dowhen.when(f, "return x").bp()
+        f(0)
+    finally:
+        sys.settrace(_trace_func)
+        sys.stdin = _stdin
+        sys.stdout = _stdout
+
+    for out in (output.getvalue(), output2.getvalue()):
+        assert "x = x + 1" in out
+        assert "(Pdb)" in out
+        assert "test_bp()" in out
+        assert "return x" in out

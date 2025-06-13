@@ -65,6 +65,11 @@ class Event:
 
         return cls(code, "line", {"line_number": line_number}, condition=condition)
 
+    def bp(self) -> "EventHandler":
+        from .callback import Callback
+
+        return self._submit_callback(Callback.bp())
+
     def do(self, func: str | Callable) -> "EventHandler":
         from .callback import Callback
 

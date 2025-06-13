@@ -88,6 +88,17 @@ class Callback:
     def goto(cls, target: str | int) -> Callback:
         return cls("goto", target=target)
 
+    @classmethod
+    def bp(cls) -> Callback:
+        def do_breakpoint(_frame: FrameType) -> None:  # pragma: no cover
+            import pdb
+
+            p = pdb.Pdb()
+            p.set_trace(_frame)
+            p.user_line(_frame)
+
+        return cls(do_breakpoint)
+
     def when(
         self,
         entity: CodeType | FunctionType | MethodType,
@@ -109,5 +120,6 @@ class Callback:
         return handler
 
 
+bp = Callback.bp
 do = Callback.do
 goto = Callback.goto
