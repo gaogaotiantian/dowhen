@@ -37,11 +37,11 @@ def get_line_numbers(
             raise TypeError(f"Unknown identifier type: {type(ident)}")
 
     agreed_line_numbers = set.intersection(*line_numbers_sets)
-    agreed_line_numbers = [
+    agreed_line_numbers = {
         line_number
         for line_number in agreed_line_numbers
         if line_number in (line[2] for line in code.co_lines())
-    ]
+    }
     if not agreed_line_numbers:
         return None
 
