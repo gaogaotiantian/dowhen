@@ -102,16 +102,16 @@ class Callback:
     def when(
         self,
         entity: CodeType | FunctionType | MethodType | ModuleType | type,
-        identifier: str | int | tuple | list | None = None,
+        *identifiers: str | int | tuple | list,
         condition: str | Callable[..., bool] | None = None,
     ) -> "EventHandler":
         from .event import when
 
-        event = when(entity, identifier, condition=condition)
+        trigger = when(entity, *identifiers, condition=condition)
 
         from .event_handler import EventHandler
 
-        handler = EventHandler(event, self)
+        handler = EventHandler(trigger, self)
 
         from .instrumenter import Instrumenter
 

@@ -96,6 +96,7 @@ def test_module():
         if lineno != random.randrange.__code__.co_firstlineno:
             first_line = lineno
             break
+    assert isinstance(first_line, int)
     write_back = []
     dowhen.when(random, first_line).do(lambda: write_back.append(True))
     random.randrange(10)
@@ -131,6 +132,35 @@ def test_every_line():
     dowhen.when(f).do(cb)
     f(0)
     assert lst == [0, 1, 2, 3]
+
+
+def test_multiple_lines():
+    def f(x):
+        x = 1
+        x = 2
+        x = 3
+        return x
+
+    lst = []
+
+    def cb(x):
+        lst.append(x)
+
+    dowhen.when(f, "x = 1", "x = 3").do(cb)
+    f(0)
+    assert lst == [0, 2]
+    dowhen.clear_all()
+
+
+def test_mix_events():
+    def f(x):
+        for i in range(100):
+            x += i
+        return x
+    write_back = []
+    dowhen.when(f, "<start>", "return x").do(lambda: write_back.append(1))
+    f(0)
+    assert write_back == [1, 1]
 
 
 def test_goto():

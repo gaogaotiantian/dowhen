@@ -80,7 +80,7 @@ class Trigger:
     def when(
         cls,
         entity: CodeType | FunctionType | MethodType | ModuleType | type,
-        identifier: str | int | tuple | list | None = None,
+        *identifiers: str | int | tuple | list,
         condition: str | Callable[..., bool] | None = None,
     ):
         if isinstance(condition, str):
@@ -97,28 +97,27 @@ class Trigger:
 
         direct_code_objects, all_code_objects = cls.get_code_from_entity(entity)
 
-        if identifier == "<start>":
-            for code in direct_code_objects:
-                events.append(Event(code, "start", None))
-            return cls(events, condition=condition)
-        elif identifier == "<return>":
-            for code in direct_code_objects:
-                events.append(Event(code, "return", None))
-            return cls(events, condition=condition)
-
-        if identifier is None:
+        if not identifiers:
             for code in direct_code_objects:
                 events.append(Event(code, "line", {"line_number": None}))
             return cls(events, condition=condition)
 
-        for code in all_code_objects:
-            line_number = get_line_number(code, identifier)
-            if line_number is not None:
-                events.append(Event(code, "line", {"line_number": line_number}))
+        for identifier in identifiers:
+            if identifier == "<start>":
+                for code in direct_code_objects:
+                    events.append(Event(code, "start", None))
+            elif identifier == "<return>":
+                for code in direct_code_objects:
+                    events.append(Event(code, "return", None))
+
+            for code in all_code_objects:
+                line_number = get_line_number(code, identifier)
+                if line_number is not None:
+                    events.append(Event(code, "line", {"line_number": line_number}))
 
         if not events:
             raise ValueError(
-                "Could not set any event based on the entity and identifier."
+                "Could not set any event based on the entity and identifiers."
             )
 
         return cls(events, condition=condition)

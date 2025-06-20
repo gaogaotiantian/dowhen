@@ -29,10 +29,11 @@ An instrumentation is basically a callback on a trigger. You can think of
 
 ### `when`
 
-`when` takes an `entity`, an `identifier` and an optional `condition`.
+`when` takes an `entity`, optional positional `identifiers` and
+an optional keyword-only `condition`.
 
 * `entity` - a function, method, code object, class or module
-* `identifier` - something to locate a specific line or a special event
+* `identifiers` - something to locate a specific line or a special event
 * `condition` - an expression or a function to determine whether the trigger should fire
 
 #### `identifier`
@@ -53,8 +54,18 @@ when(f, "ret")
 when(f, "return x")
 ```
 
+You can combine these identifiers together as a tuple to construct an `and` logic.
+
+```python
+# This works!
+when(f, (4, "+1"))
+
+# This will raise an error! Helpful to catch source line changes
+when(f, (4, "+2"))
+```
+
 A special case would be when you want to trigger the event on every line.
-You can pass `None` as the identifier.
+Then you don't need to pass any identifier
 
 ```python
 def f(x):
@@ -63,7 +74,7 @@ def f(x):
     return x
 
 # Will print 0, 1, 2 in each line
-do("print(x)").when(f, None)
+do("print(x)").when(f)
 f(0)
 ```
 
@@ -72,6 +83,20 @@ Or you can fire the callback at special events like function start/return
 ```python
 when(f, "<start>")
 when(f, "<return>")
+```
+
+You can also pass multiple identifiers to construct an `or` logic.
+
+```python
+def f(x):
+    for i in range(100):
+        # very noisy
+        x += i
+    return x
+
+# print before and after for loop
+do("print(x)").when(f, "<start>", "return x")
+f(3)
 ```
 
 #### condition
