@@ -6,7 +6,7 @@ from __future__ import annotations
 import sys
 from collections import defaultdict
 
-from .event_handler import EventHandler
+from .handler import EventHandler
 
 E = sys.monitoring.events
 

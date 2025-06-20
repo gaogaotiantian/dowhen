@@ -26,7 +26,7 @@ def test_enable_disable():
         handler.enable()
 
 
-def test_event_handler_call():
+def test_handler_call():
     def f(x):
         return x
 

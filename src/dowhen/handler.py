@@ -7,7 +7,7 @@ from __future__ import annotations
 from types import FrameType
 
 from .callback import Callback
-from .event import Trigger
+from .trigger import Trigger
 
 
 class EventHandler:

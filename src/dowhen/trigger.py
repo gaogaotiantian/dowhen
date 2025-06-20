@@ -13,7 +13,7 @@ from .util import call_in_frame, get_line_number
 
 if TYPE_CHECKING:  # pragma: no cover
     from .callback import Callback
-    from .event_handler import EventHandler
+    from .handler import EventHandler
 
 
 class Event:
@@ -153,7 +153,7 @@ class Trigger:
         assert False, "Unknown condition type"  # pragma: no cover
 
     def _submit_callback(self, callback: "Callback") -> "EventHandler":
-        from .event_handler import EventHandler
+        from .handler import EventHandler
 
         handler = EventHandler(self, callback)
         from .instrumenter import Instrumenter

@@ -5,7 +5,7 @@
 __version__ = "0.0.1"
 
 from .callback import bp, do, goto
-from .event import when
+from .trigger import when
 from .instrumenter import clear_all
 
 __all__ = ["bp", "clear_all", "do", "goto", "when"]

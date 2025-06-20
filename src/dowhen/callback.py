@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from .util import call_in_frame, get_line_number
 
 if TYPE_CHECKING:  # pragma: no cover
-    from .event_handler import EventHandler
+    from .handler import EventHandler
 
 
 class Callback:
@@ -105,11 +105,11 @@ class Callback:
         *identifiers: str | int | tuple | list,
         condition: str | Callable[..., bool] | None = None,
     ) -> "EventHandler":
-        from .event import when
+        from .trigger import when
 
         trigger = when(entity, *identifiers, condition=condition)
 
-        from .event_handler import EventHandler
+        from .handler import EventHandler
 
         handler = EventHandler(trigger, self)
 
