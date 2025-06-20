@@ -157,6 +157,7 @@ def test_mix_events():
         for i in range(100):
             x += i
         return x
+
     write_back = []
     dowhen.when(f, "<start>", "return x").do(lambda: write_back.append(1))
     f(0)
