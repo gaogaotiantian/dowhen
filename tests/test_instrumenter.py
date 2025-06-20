@@ -8,6 +8,8 @@ import sys
 import dowhen
 from dowhen.instrumenter import Instrumenter
 
+from .util import disable_coverage
+
 E = sys.monitoring.events
 
 
@@ -68,7 +70,8 @@ def test_line_event_disabled():
         return x
 
     dowhen.do("x = 1").when(f, "return x")
-    f(0)
+    with disable_coverage():
+        f(0)
     assert (
         len(
             [
