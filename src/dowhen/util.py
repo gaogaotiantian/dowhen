@@ -11,40 +11,41 @@ from types import CodeType, FrameType
 from typing import Any
 
 
-def get_line_number(code: CodeType, identifier: int | str | list | tuple) -> int | None:
+def get_line_numbers(
+    code: CodeType, identifier: int | str | list | tuple
+) -> list[int] | None:
     if not isinstance(identifier, (list, tuple)):
         identifier = [identifier]
 
-    agreed_line_number = None
+    line_numbers_sets = []
 
     for ident in identifier:
         if isinstance(ident, int):
-            line_number = ident
+            line_numbers_sets.append({ident})
         elif isinstance(ident, str):
             if ident.startswith("+") and ident[1:].isdigit():
-                line_number = code.co_firstlineno + int(ident[1:])
+                line_numbers_sets.append({code.co_firstlineno + int(ident[1:])})
             else:
                 lines, start_line = inspect.getsourcelines(code)
+                line_numbers = set()
                 for i, line in enumerate(lines):
                     if line.strip().startswith(ident):
                         line_number = start_line + i
-                        break
-                else:
-                    return None
+                        line_numbers.add(line_number)
+                line_numbers_sets.append(line_numbers)
         else:
             raise TypeError(f"Unknown identifier type: {type(ident)}")
 
-        if agreed_line_number is None:
-            agreed_line_number = line_number
-        elif agreed_line_number != line_number:
-            return None
+    agreed_line_numbers = set.intersection(*line_numbers_sets)
+    agreed_line_numbers = [
+        line_number
+        for line_number in agreed_line_numbers
+        if line_number in (line[2] for line in code.co_lines())
+    ]
+    if not agreed_line_numbers:
+        return None
 
-    if agreed_line_number is not None:
-        if agreed_line_number not in (line[2] for line in code.co_lines()):
-            # Need to check if agreed_line_number is indeed in the code object
-            return None
-
-    return agreed_line_number
+    return sorted(agreed_line_numbers)
 
 
 @functools.lru_cache(maxsize=256)

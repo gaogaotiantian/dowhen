@@ -27,6 +27,16 @@ def test_event_line_number():
         dowhen.when(f, ("+3", "pass"))
 
 
+def test_event_multiple_line_match():
+    def f(x):
+        x += 1
+        x += 2
+        return x
+
+    dowhen.when(f, "x +=").do("x += 1")
+    assert f(0) == 5
+
+
 def test_when_do():
     def f(x):
         return x

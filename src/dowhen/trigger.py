@@ -9,7 +9,7 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Literal
 
-from .util import call_in_frame, get_line_number
+from .util import call_in_frame, get_line_numbers
 
 if TYPE_CHECKING:  # pragma: no cover
     from .callback import Callback
@@ -113,9 +113,10 @@ class Trigger:
                     events.append(Event(code, "return", None))
 
             for code in all_code_objects:
-                line_number = get_line_number(code, identifier)
-                if line_number is not None:
-                    events.append(Event(code, "line", {"line_number": line_number}))
+                line_numbers = get_line_numbers(code, identifier)
+                if line_numbers is not None:
+                    for line_number in line_numbers:
+                        events.append(Event(code, "line", {"line_number": line_number}))
 
         if not events:
             raise ValueError(

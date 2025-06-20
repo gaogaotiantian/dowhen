@@ -12,7 +12,7 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING
 
-from .util import call_in_frame, get_line_number
+from .util import call_in_frame, get_line_numbers
 
 if TYPE_CHECKING:  # pragma: no cover
     from .handler import EventHandler
@@ -71,9 +71,14 @@ class Callback:
         # Changing frame.f_lineno is only allowed in trace functions so it's
         # impossible to get coverage for this function
         target = self.kwargs["target"]
-        line_number = get_line_number(frame.f_code, target)
-        if line_number is None:
+        line_numbers = get_line_numbers(frame.f_code, target)
+        if line_numbers is None:
             raise ValueError(f"Could not determine line number for target: {target}")
+        elif len(line_numbers) > 1:
+            raise ValueError(
+                f"Multiple line numbers found for target '{target}': {line_numbers}"
+            )
+        line_number = line_numbers[0]
         with warnings.catch_warnings():
             # This gives a RuntimeWarning in Python 3.12
             warnings.simplefilter("ignore", RuntimeWarning)
