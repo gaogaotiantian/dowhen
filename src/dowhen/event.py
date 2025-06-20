@@ -2,6 +2,8 @@
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
 
+from __future__ import annotations
+
 import inspect
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
