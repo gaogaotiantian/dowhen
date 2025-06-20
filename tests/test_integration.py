@@ -2,6 +2,8 @@
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
 
+import pytest
+
 import dowhen
 
 
@@ -32,3 +34,28 @@ def test_multi_callback():
 
     handler_y.remove()
     assert f(0, 0) == 0
+
+
+def func_test(x, y):
+    x = x + 1
+    y = y + 1
+    return x, y
+
+
+@pytest.mark.parametrize(
+    "cb_func, entity, identifiers, expected_results",
+    [
+        ("x = 2", func_test, ("return x",), ([0, 0], (2, 1))),
+        ("x += 1", func_test, ("return x", "<start>"), ([0, 0], (3, 1))),
+        ("x += 1", func_test, (), ([0, 0], (4, 1))),
+    ],
+)
+def test_integration(cb_func, entity, identifiers, expected_results):
+    args, retval = expected_results
+    handler = dowhen.do(cb_func).when(entity, *identifiers)
+    assert func_test(*args) == retval
+    handler.remove()
+
+    handler = dowhen.when(entity, *identifiers).do(cb_func)
+    assert func_test(*args) == retval
+    handler.remove()
