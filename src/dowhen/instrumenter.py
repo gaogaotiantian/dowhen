@@ -12,11 +12,11 @@ E = sys.monitoring.events
 
 
 class Instrumenter:
-    def __new__(self, *args, **kwargs):
-        if not hasattr(self, "_instance"):
-            self._instance = super().__new__(self)
-            self._instance._intialized = False
-        return self._instance
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, "_instance"):
+            cls._instance = super().__new__(cls)
+            cls._instance._intialized = False
+        return cls._instance
 
     def __init__(self, tool_id=4):
         if not self._intialized:
