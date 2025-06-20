@@ -67,6 +67,25 @@ def test_start_return():
     assert return_value == 0
 
 
+def test_closure():
+    def f(x):
+        def g():
+            return x
+        return g()
+    dowhen.when(f, "return x").do("x = 1")
+    assert f(2) == 1
+
+
+def test_method():
+    class A:
+        def f(self, x):
+            return x
+
+    a = A()
+    dowhen.when(a.f, "return x").do("x = 1")
+    assert a.f(2) == 1
+
+
 def test_every_line():
     def f(x):
         x = 1

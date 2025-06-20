@@ -36,19 +36,42 @@ class Trigger:
         self.condition = condition
 
     @classmethod
+    def get_code_from_entity(
+        cls, entity: CodeType | FunctionType | MethodType
+    ) -> tuple[list[CodeType], list[CodeType]]:
+        """
+        Get the direct code objects and the internal code objects from the given entity.
+        """
+        direct_code_objects: list[CodeType] = []
+        all_code_objects: list[CodeType] = []
+
+        if inspect.isfunction(entity) or inspect.ismethod(entity):
+            direct_code_objects.append(entity.__code__)
+        elif inspect.iscode(entity):
+            direct_code_objects.append(entity)
+        else:
+            raise TypeError(f"Unknown entity type: {type(entity)}")
+
+        for code in direct_code_objects:
+            stack = [code]
+            while stack:
+                current_code = stack.pop()
+                assert isinstance(current_code, CodeType)
+
+                all_code_objects.append(current_code)
+                for const in current_code.co_consts:
+                    if isinstance(const, CodeType):
+                        stack.append(const)
+
+        return direct_code_objects, all_code_objects
+
+    @classmethod
     def when(
         cls,
         entity: CodeType | FunctionType | MethodType,
         identifier: str | int | tuple | list | None = None,
         condition: str | Callable[..., bool] | None = None,
     ):
-        if inspect.isfunction(entity):
-            code = entity.__code__
-        elif inspect.iscode(entity):
-            code = entity
-        else:
-            raise TypeError(f"Unknown entity type: {type(entity)}")
-
         if isinstance(condition, str):
             try:
                 compile(condition, "<string>", "eval")
@@ -61,22 +84,32 @@ class Trigger:
 
         events = []
 
+        direct_code_objects, all_code_objects = cls.get_code_from_entity(entity)
+
         if identifier == "<start>":
-            events.append(Event(code, "start", None))
+            for code in direct_code_objects:
+                events.append(Event(code, "start", None))
             return cls(events, condition=condition)
         elif identifier == "<return>":
-            events.append(Event(code, "return", None))
+            for code in direct_code_objects:
+                events.append(Event(code, "return", None))
             return cls(events, condition=condition)
 
         if identifier is None:
-            events.append(Event(code, "line", {"line_number": None}))
+            for code in direct_code_objects:
+                events.append(Event(code, "line", {"line_number": None}))
             return cls(events, condition=condition)
 
-        line_number = get_line_number(code, identifier)
-        if line_number is None:
-            raise ValueError("Could not determine line number from identifier.")
+        for code in all_code_objects:
+            line_number = get_line_number(code, identifier)
+            if line_number is not None:
+                events.append(Event(code, "line", {"line_number": line_number}))
 
-        events.append(Event(code, "line", {"line_number": line_number}))
+        if not events:
+            raise ValueError(
+                "Could not set any event based on the entity and identifier."
+            )
+
         return cls(events, condition=condition)
 
     def bp(self) -> "EventHandler":
