@@ -88,6 +88,34 @@ def test_method():
     assert a.f(2) == 1
 
 
+def test_module():
+    import random
+
+    co_lines = random.randrange.__code__.co_lines()
+    for _, _, lineno in co_lines:
+        if lineno != random.randrange.__code__.co_firstlineno:
+            first_line = lineno
+            break
+    write_back = []
+    dowhen.when(random, first_line).do(lambda: write_back.append(True))
+    random.randrange(10)
+    assert write_back == [True]
+
+
+def test_class():
+    class A:
+        def f(self, x):
+            return x
+
+        def g(self, x):
+            return x
+
+    dowhen.when(A, "return x").do("x = 1")
+    a = A()
+    assert a.f(2) == 1
+    assert a.g(2) == 1
+
+
 def test_every_line():
     def f(x):
         x = 1

@@ -9,7 +9,7 @@ import inspect
 import sys
 import warnings
 from collections.abc import Callable
-from types import CodeType, FrameType, FunctionType, MethodType
+from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING
 
 from .util import call_in_frame, get_line_number
@@ -101,7 +101,7 @@ class Callback:
 
     def when(
         self,
-        entity: CodeType | FunctionType | MethodType,
+        entity: CodeType | FunctionType | MethodType | ModuleType | type,
         identifier: str | int | tuple | list | None = None,
         condition: str | Callable[..., bool] | None = None,
     ) -> "EventHandler":

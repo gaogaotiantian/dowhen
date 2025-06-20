@@ -4,7 +4,7 @@
 
 import inspect
 from collections.abc import Callable
-from types import CodeType, FrameType, FunctionType, MethodType
+from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Literal
 
 from .util import call_in_frame, get_line_number
@@ -37,7 +37,7 @@ class Trigger:
 
     @classmethod
     def get_code_from_entity(
-        cls, entity: CodeType | FunctionType | MethodType
+        cls, entity: CodeType | FunctionType | MethodType | ModuleType | type
     ) -> tuple[list[CodeType], list[CodeType]]:
         """
         Get the direct code objects and the internal code objects from the given entity.
@@ -45,12 +45,23 @@ class Trigger:
         direct_code_objects: list[CodeType] = []
         all_code_objects: list[CodeType] = []
 
-        if inspect.isfunction(entity) or inspect.ismethod(entity):
-            direct_code_objects.append(entity.__code__)
-        elif inspect.iscode(entity):
-            direct_code_objects.append(entity)
+        entity_list = []
+
+        if inspect.ismodule(entity) or inspect.isclass(entity):
+            for _, obj in inspect.getmembers_static(
+                entity, lambda o: isinstance(o, (FunctionType, MethodType, CodeType))
+            ):
+                entity_list.append(obj)
         else:
-            raise TypeError(f"Unknown entity type: {type(entity)}")
+            entity_list.append(entity)
+
+        for entity in entity_list:
+            if inspect.isfunction(entity) or inspect.ismethod(entity):
+                direct_code_objects.append(entity.__code__)
+            elif inspect.iscode(entity):
+                direct_code_objects.append(entity)
+            else:
+                raise TypeError(f"Unknown entity type: {type(entity)}")
 
         for code in direct_code_objects:
             stack = [code]
@@ -68,7 +79,7 @@ class Trigger:
     @classmethod
     def when(
         cls,
-        entity: CodeType | FunctionType | MethodType,
+        entity: CodeType | FunctionType | MethodType | ModuleType | type,
         identifier: str | int | tuple | list | None = None,
         condition: str | Callable[..., bool] | None = None,
     ):
