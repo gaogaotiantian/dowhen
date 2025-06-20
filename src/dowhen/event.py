@@ -17,12 +17,12 @@ if TYPE_CHECKING:  # pragma: no cover
 class Event:
     def __init__(
         self,
-        code: CodeType,
+        codes: tuple[CodeType],
         event_type: Literal["line", "start", "return"],
         event_data: dict | None,
         condition: str | Callable[..., bool] | None = None,
     ):
-        self.code = code
+        self.codes = codes
         self.event_type = event_type
         self.event_data = event_data
         self.condition = condition
@@ -52,18 +52,18 @@ class Event:
             )
 
         if identifier == "<start>":
-            return cls(code, "start", {}, condition=condition)
+            return cls((code,), "start", {}, condition=condition)
         elif identifier == "<return>":
-            return cls(code, "return", {}, condition=condition)
+            return cls((code,), "return", {}, condition=condition)
 
         if identifier is None:
-            return cls(code, "line", {"line_number": None}, condition=condition)
+            return cls((code,), "line", {"line_number": None}, condition=condition)
 
         line_number = get_line_number(code, identifier)
         if line_number is None:
             raise ValueError("Could not determine line number from identifier.")
 
-        return cls(code, "line", {"line_number": line_number}, condition=condition)
+        return cls((code,), "line", {"line_number": line_number}, condition=condition)
 
     def bp(self) -> "EventHandler":
         from .callback import Callback
