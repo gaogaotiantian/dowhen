@@ -71,7 +71,9 @@ def test_closure():
     def f(x):
         def g():
             return x
+
         return g()
+
     dowhen.when(f, "return x").do("x = 1")
     assert f(2) == 1
 
