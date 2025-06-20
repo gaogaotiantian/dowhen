@@ -17,14 +17,22 @@ if TYPE_CHECKING:  # pragma: no cover
 class Event:
     def __init__(
         self,
-        codes: tuple[CodeType],
+        code: CodeType,
         event_type: Literal["line", "start", "return"],
         event_data: dict | None,
+    ):
+        self.code = code
+        self.event_type = event_type
+        self.event_data = event_data or {}
+
+
+class Trigger:
+    def __init__(
+        self,
+        events: list[Event],
         condition: str | Callable[..., bool] | None = None,
     ):
-        self.codes = codes
-        self.event_type = event_type
-        self.event_data = event_data
+        self.events = events
         self.condition = condition
 
     @classmethod
@@ -51,19 +59,25 @@ class Event:
                 f"Condition must be a string or callable, got {type(condition)}"
             )
 
+        events = []
+
         if identifier == "<start>":
-            return cls((code,), "start", {}, condition=condition)
+            events.append(Event(code, "start", None))
+            return cls(events, condition=condition)
         elif identifier == "<return>":
-            return cls((code,), "return", {}, condition=condition)
+            events.append(Event(code, "return", None))
+            return cls(events, condition=condition)
 
         if identifier is None:
-            return cls((code,), "line", {"line_number": None}, condition=condition)
+            events.append(Event(code, "line", {"line_number": None}))
+            return cls(events, condition=condition)
 
         line_number = get_line_number(code, identifier)
         if line_number is None:
             raise ValueError("Could not determine line number from identifier.")
 
-        return cls((code,), "line", {"line_number": line_number}, condition=condition)
+        events.append(Event(code, "line", {"line_number": line_number}))
+        return cls(events, condition=condition)
 
     def bp(self) -> "EventHandler":
         from .callback import Callback
@@ -103,4 +117,4 @@ class Event:
         return handler
 
 
-when = Event.when
+when = Trigger.when

@@ -39,22 +39,22 @@ class Instrumenter:
         self.handlers.clear()
 
     def submit(self, event_handler: EventHandler):
-        event = event_handler.event
-        if event.event_type == "line":
-            assert (
-                isinstance(event.event_data, dict) and "line_number" in event.event_data
-            )
-            for code in event.codes:
+        trigger = event_handler.trigger
+        for event in trigger.events:
+            code = event.code
+            if event.event_type == "line":
+                assert (
+                    isinstance(event.event_data, dict)
+                    and "line_number" in event.event_data
+                )
                 self.register_line_event(
                     code,
                     event.event_data["line_number"],
                     event_handler,
                 )
-        elif event.event_type == "start":
-            for code in event.codes:
+            elif event.event_type == "start":
                 self.register_start_event(code, event_handler)
-        elif event.event_type == "return":
-            for code in event.codes:
+            elif event.event_type == "return":
                 self.register_return_event(code, event_handler)
 
     def register_line_event(self, code, line_number, event_handler: EventHandler):
@@ -109,8 +109,9 @@ class Instrumenter:
         return sys.monitoring.DISABLE
 
     def remove_handler(self, event_handler: EventHandler):
-        event = event_handler.event
-        for code in event.codes:
+        trigger = event_handler.trigger
+        for event in trigger.events:
+            code = event.code
             if code not in self.handlers or event.event_type not in self.handlers[code]:
                 continue
             if event.event_type == "line":

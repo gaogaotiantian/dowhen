@@ -7,12 +7,12 @@ from __future__ import annotations
 from types import FrameType
 
 from .callback import Callback
-from .event import Event
+from .event import Trigger
 
 
 class EventHandler:
-    def __init__(self, event: Event, callback: Callback):
-        self.event = event
+    def __init__(self, trigger: Trigger, callback: Callback):
+        self.trigger = trigger
         self.callback = callback
         self.enabled = True
         self.removed = False
@@ -32,5 +32,5 @@ class EventHandler:
         self.removed = True
 
     def __call__(self, frame: FrameType) -> None:
-        if self.enabled and self.event.should_fire(frame):
+        if self.enabled and self.trigger.should_fire(frame):
             self.callback(frame)

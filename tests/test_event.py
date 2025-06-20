@@ -16,9 +16,9 @@ def test_event_line_number():
 
     for entity in (f, f.__code__):
         for identifier in [target_line_number, "+1", "pass", ("+1", "pass")]:
-            event = dowhen.when(entity, identifier)
-            assert event.event_type == "line"
-            assert event.event_data["line_number"] == target_line_number
+            trigger = dowhen.when(entity, identifier)
+            assert trigger.events[0].event_type == "line"
+            assert trigger.events[0].event_data["line_number"] == target_line_number
 
     with pytest.raises(ValueError):
         dowhen.when(f, "nonexistent")
@@ -41,24 +41,24 @@ def test_start_return():
     def f(x):
         return x
 
-    start_event = dowhen.when(f, "<start>")
-    assert start_event.event_type == "start"
-    assert start_event.event_data == {}
-    handler = start_event.do("x = 1")
+    start_trigger = dowhen.when(f, "<start>")
+    assert start_trigger.events[0].event_type == "start"
+    assert start_trigger.events[0].event_data == {}
+    handler = start_trigger.do("x = 1")
     assert f(2) == 1
     handler.remove()
     assert f(2) == 2
 
-    return_event = dowhen.when(f, "<return>")
-    assert return_event.event_type == "return"
-    assert return_event.event_data == {}
+    return_trigger = dowhen.when(f, "<return>")
+    assert return_trigger.events[0].event_type == "return"
+    assert return_trigger.events[0].event_data == {}
     return_value = None
 
     def return_event_handler():
         nonlocal return_value
         return_value = 42
 
-    handler = return_event.do(return_event_handler)
+    handler = return_trigger.do(return_event_handler)
     f(0)
     assert return_value == 42
     return_value = 0
@@ -125,16 +125,16 @@ def test_should_fire():
 
     frame = sys._getframe()
 
-    for event in (
+    for trigger in (
         dowhen.when(f, "return x", condition="x == 0"),
         dowhen.when(f, "return x", condition=lambda x: x == 0),
     ):
         x = 0
-        assert event.should_fire(frame) is True
+        assert trigger.should_fire(frame) is True
         x = 1
-        assert event.should_fire(frame) is False
+        assert trigger.should_fire(frame) is False
         del x
-        assert event.should_fire(frame) is False
+        assert trigger.should_fire(frame) is False
 
 
 def test_invalid_type():
