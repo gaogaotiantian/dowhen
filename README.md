@@ -22,12 +22,10 @@ do("x = 1").when(f, "return x")
 assert f(0) == 1
 ```
 
-An instrumentation is basically a callback on an event. You can think of
-`do` as a callback, and `when` as an event.
+An instrumentation is basically a callback on a trigger. You can think of
+`do` as a callback, and `when` as a trigger.
 
-## Event
-
-An event is a specific time to trigger the callback.
+## Trigger
 
 ### `when`
 
@@ -35,7 +33,7 @@ An event is a specific time to trigger the callback.
 
 * `entity` - a function, method or code object
 * `identifier` - something to locate a specific line or a special event
-* `condition` - an expression or a function to determine whether the event should fire
+* `condition` - an expression or a function to determine whether the trigger should fire
 
 #### `identifier`
 
@@ -79,7 +77,7 @@ when(f, "<return>")
 #### condition
 
 `condition` takes a string expression or a function that evaluates to a
-`bool`. It will be evaluated for every event and the event will only
+`bool`. It will be evaluated for every trigger and the trigger will only
 fire when `condition` evaluates to `True`.
 
 If a function is used, the magic local variable mapping as `do`
@@ -100,11 +98,11 @@ assert f(2) == 2
 
 ## Callback
 
-A callback is some action you want to perform at the event
+A callback is some action you want to perform at the trigger
 
 ### Do
 
-`do` is to run some code at the event. It can take either a string
+`do` is to run some code at the trigger. It can take either a string
 or a function.
 
 ```python
@@ -163,7 +161,7 @@ f()
 
 ### bp
 
-`bp` (short for `breakpoint`) enters `pdb` at the event.
+`bp` (short for `breakpoint`) enters `pdb` at the trigger.
 
 ```python
 from dowhen import bp
@@ -178,7 +176,7 @@ f(0)
 
 ## Handler
 
-When you combine an event with a callback, you get a handler.
+When you combine a trigger with a callback, you get a handler.
 
 ```python
 from dowhen import do, when
