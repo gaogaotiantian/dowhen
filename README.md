@@ -31,7 +31,7 @@ An instrumentation is basically a callback on a trigger. You can think of
 
 `when` takes an `entity`, an `identifier` and an optional `condition`.
 
-* `entity` - a function, method or code object
+* `entity` - a function, method, code object, class or module
 * `identifier` - something to locate a specific line or a special event
 * `condition` - an expression or a function to determine whether the trigger should fire
 
