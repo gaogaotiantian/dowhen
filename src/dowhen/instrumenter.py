@@ -14,16 +14,17 @@ DISABLE = sys.monitoring.DISABLE
 
 
 class Instrumenter:
-    def __new__(cls, *args, **kwargs):
+    _intialized: bool = False
+
+    def __new__(cls, *args, **kwargs) -> Instrumenter:
         if not hasattr(cls, "_instance"):
             cls._instance = super().__new__(cls)
-            cls._instance._intialized = False
         return cls._instance
 
     def __init__(self, tool_id: int = 4):
         if not self._intialized:
             self.tool_id = tool_id
-            self.handlers = defaultdict(dict)
+            self.handlers: defaultdict[CodeType, dict] = defaultdict(dict)
 
             sys.monitoring.use_tool_id(self.tool_id, "dowhen instrumenter")
             sys.monitoring.register_callback(self.tool_id, E.LINE, self.line_callback)
