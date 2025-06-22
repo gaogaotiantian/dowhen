@@ -230,6 +230,28 @@ assert f(0) == 1
 handler2.remove()
 ```
 
+You can also disable the handler from the callback or condition by
+returning `dowhen.DISABLE` (which is just `sys.monitoring.DISABLE`).
+
+```python
+def f(x):
+    return x
+
+def cb():
+    return dowhen.DISABLE
+
+handler = do(cb).when(f, "return x")
+f(0)
+assert not handler.enabled
+
+handler = do("x = 1").when(f, "return x", cond=lambda: dowhen.DISABLE)
+f(0)
+assert not handler.enabled
+```
+
+If all the handlers on a specific event are disabled, the event will be
+disabled too to reduce overall overhead.
+
 Or you can remove all the instrumentation by
 
 ```python

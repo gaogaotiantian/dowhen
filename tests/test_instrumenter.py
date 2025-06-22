@@ -13,6 +13,19 @@ from .util import disable_coverage
 E = sys.monitoring.events
 
 
+def assert_instrumented_line_count(func, count):
+    assert (
+        len(
+            [
+                inst
+                for inst in dis.get_instructions(func, adaptive=True)
+                if inst.opname == "INSTRUMENTED_LINE"
+            ]
+        )
+        == count
+    )
+
+
 def test_local_events():
     def f(x):
         return x
@@ -72,13 +85,60 @@ def test_line_event_disabled():
     dowhen.do("x = 1").when(f, "return x")
     with disable_coverage():
         f(0)
-    assert (
-        len(
-            [
-                inst
-                for inst in dis.get_instructions(f, adaptive=True)
-                if inst.opname == "INSTRUMENTED_LINE"
-            ]
-        )
-        == 1
-    )
+    assert_instrumented_line_count(f, 1)
+
+
+def test_disable_from_callback():
+    def f(x):
+        return x
+
+    call_count = 0
+
+    def cb():
+        nonlocal call_count
+        call_count += 1
+        return dowhen.DISABLE
+
+    handler = dowhen.do(cb).when(f, "return x")
+
+    f(0)
+    f(0)
+    assert call_count == 1
+    assert not handler.enabled
+
+    handler.enable()
+    f(0)
+    f(0)
+    assert call_count == 2
+
+    with disable_coverage():
+        f(0)
+    assert_instrumented_line_count(f, 0)
+
+
+def test_disable_from_condition():
+    def f(x):
+        return x
+
+    call_count = 0
+
+    def cond():
+        nonlocal call_count
+        call_count += 1
+        return dowhen.DISABLE
+
+    handler = dowhen.when(f, "return x", condition=cond).do("x = 1")
+
+    f(0)
+    f(0)
+    assert call_count == 1
+    assert not handler.enabled
+
+    handler.enable()
+    f(0)
+    f(0)
+    assert call_count == 2
+
+    with disable_coverage():
+        f(0)
+    assert_instrumented_line_count(f, 0)

@@ -7,7 +7,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from .util import call_in_frame, get_line_numbers
 
@@ -83,7 +83,7 @@ class Trigger:
         cls,
         entity: CodeType | FunctionType | MethodType | ModuleType | type,
         *identifiers: str | int | tuple | list,
-        condition: str | Callable[..., bool] | None = None,
+        condition: str | Callable[..., bool | Any] | None = None,
     ):
         if isinstance(condition, str):
             try:

@@ -24,6 +24,8 @@ def test_enable_disable():
     assert f(2) == 2
     with pytest.raises(RuntimeError):
         handler.enable()
+    with pytest.raises(RuntimeError):
+        handler.disable()
 
 
 def test_handler_call():
@@ -40,6 +42,23 @@ def test_handler_call():
     handler.disable()
     handler(frame)
     assert x == 0
+
+
+def test_handler_disable():
+    def f(x):
+        return x
+
+    def cb():
+        return dowhen.DISABLE
+
+    handler = dowhen.do(cb).when(f, "return x")
+    frame = sys._getframe()
+    assert handler(frame) is dowhen.DISABLE
+    assert not handler.enabled
+
+    handler = dowhen.do("x = 1").when(f, "return x", condition=lambda: dowhen.DISABLE)
+    assert handler(frame) is dowhen.DISABLE
+    assert not handler.enabled
 
 
 def test_remove():

@@ -9,6 +9,7 @@ from collections import defaultdict
 from .handler import EventHandler
 
 E = sys.monitoring.events
+DISABLE = sys.monitoring.DISABLE
 
 
 class Instrumenter:
@@ -71,9 +72,7 @@ class Instrumenter:
             handlers = self.handlers[code].get("line", {}).get(line_number, [])
             handlers.extend(self.handlers[code].get("line", {}).get(None, []))
             if handlers:
-                for handler in handlers:
-                    handler(sys._getframe(1))
-                return
+                return self._process_handlers(handlers, sys._getframe(1))
         return sys.monitoring.DISABLE
 
     def register_start_event(self, code, event_handler: EventHandler):
@@ -87,9 +86,7 @@ class Instrumenter:
         if code in self.handlers:
             handlers = self.handlers[code].get("start", [])
             if handlers:
-                for handler in handlers:
-                    handler(sys._getframe(1))
-                return
+                return self._process_handlers(handlers, sys._getframe(1))
         return sys.monitoring.DISABLE
 
     def register_return_event(self, code, event_handler: EventHandler):
@@ -103,10 +100,17 @@ class Instrumenter:
         if code in self.handlers:
             handlers = self.handlers[code].get("return", [])
             if handlers:
-                for handler in handlers:
-                    handler(sys._getframe(1))
-                return
+                return self._process_handlers(handlers, sys._getframe(1))
         return sys.monitoring.DISABLE
+
+    def _process_handlers(self, handlers, frame):  # pragma: no cover
+        disable = sys.monitoring.DISABLE
+        for handler in handlers:
+            disable = handler(frame) and disable
+        return sys.monitoring.DISABLE if disable else None
+
+    def restart_events(self):
+        sys.monitoring.restart_events()
 
     def remove_handler(self, event_handler: EventHandler):
         trigger = event_handler.trigger

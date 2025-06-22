@@ -93,6 +93,15 @@ def test_callback_writeback():
     dowhen.clear_all()
 
 
+def test_callback_disable():
+    def cb():
+        return dowhen.DISABLE
+
+    callback = dowhen.do(cb)
+    frame = sys._getframe()
+    assert callback(frame) is dowhen.DISABLE
+
+
 def test_callback_invalid_type():
     with pytest.raises(TypeError):
         dowhen.do(123)

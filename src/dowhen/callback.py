@@ -10,12 +10,15 @@ import sys
 import warnings
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .util import call_in_frame, get_line_numbers
 
 if TYPE_CHECKING:  # pragma: no cover
     from .handler import EventHandler
+
+
+DISABLE = sys.monitoring.DISABLE
 
 
 class Callback:
@@ -32,13 +35,14 @@ class Callback:
         self.kwargs = kwargs
 
     def __call__(self, frame):
+        ret = None
         if isinstance(self.func, str):
             if self.func == "goto":  # pragma: no cover
                 self.call_goto(frame)
             else:
                 self.call_code(frame)
         elif inspect.isfunction(self.func) or inspect.ismethod(self.func):
-            self.call_function(frame)
+            ret = self.call_function(frame)
         else:  # pragma: no cover
             assert False, "Unknown callback type"
 
@@ -47,11 +51,14 @@ class Callback:
             LocalsToFast.argtypes = [ctypes.py_object, ctypes.c_int]
             LocalsToFast(frame, 0)
 
+        if ret is DISABLE:
+            return DISABLE
+
     def call_code(self, frame: FrameType) -> None:
         assert isinstance(self.func, str)
         exec(self.func, frame.f_globals, frame.f_locals)
 
-    def call_function(self, frame: FrameType) -> None:
+    def call_function(self, frame: FrameType) -> Any:
         assert isinstance(self.func, (FunctionType, MethodType))
         writeback = call_in_frame(self.func, frame)
 
@@ -61,6 +68,8 @@ class Callback:
                 if arg not in f_locals:
                     raise TypeError(f"Argument '{arg}' not found in frame locals.")
                 f_locals[arg] = val
+        elif writeback is DISABLE:
+            return DISABLE
         elif writeback is not None:
             raise TypeError(
                 "Callback function must return a dictionary for writeback, or None, "
@@ -108,7 +117,7 @@ class Callback:
         self,
         entity: CodeType | FunctionType | MethodType | ModuleType | type,
         *identifiers: str | int | tuple | list,
-        condition: str | Callable[..., bool] | None = None,
+        condition: str | Callable[..., bool | Any] | None = None,
     ) -> "EventHandler":
         from .trigger import when
 
