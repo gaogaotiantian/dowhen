@@ -16,7 +16,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .handler import EventHandler
 
 
-class Event:
+class _Event:
     def __init__(
         self,
         code: CodeType,
@@ -31,14 +31,14 @@ class Event:
 class Trigger:
     def __init__(
         self,
-        events: list[Event],
+        events: list[_Event],
         condition: str | Callable[..., bool] | None = None,
     ):
         self.events = events
         self.condition = condition
 
     @classmethod
-    def get_code_from_entity(
+    def _get_code_from_entity(
         cls, entity: CodeType | FunctionType | MethodType | ModuleType | type
     ) -> tuple[list[CodeType], list[CodeType]]:
         """
@@ -97,26 +97,28 @@ class Trigger:
 
         events = []
 
-        direct_code_objects, all_code_objects = cls.get_code_from_entity(entity)
+        direct_code_objects, all_code_objects = cls._get_code_from_entity(entity)
 
         if not identifiers:
             for code in direct_code_objects:
-                events.append(Event(code, "line", {"line_number": None}))
+                events.append(_Event(code, "line", {"line_number": None}))
             return cls(events, condition=condition)
 
         for identifier in identifiers:
             if identifier == "<start>":
                 for code in direct_code_objects:
-                    events.append(Event(code, "start", None))
+                    events.append(_Event(code, "start", None))
             elif identifier == "<return>":
                 for code in direct_code_objects:
-                    events.append(Event(code, "return", None))
+                    events.append(_Event(code, "return", None))
 
             for code in all_code_objects:
                 line_numbers = get_line_numbers(code, identifier)
                 if line_numbers is not None:
                     for line_number in line_numbers:
-                        events.append(Event(code, "line", {"line_number": line_number}))
+                        events.append(
+                            _Event(code, "line", {"line_number": line_number})
+                        )
 
         if not events:
             raise ValueError(

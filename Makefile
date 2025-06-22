@@ -16,6 +16,14 @@ lint-fix:
 test:
 	pytest --cov=dowhen --cov-report=term-missing:skip-covered tests
 
+.PHONY: docs
+
+docs:
+	cd docs && make html
+
+docs-clean:
+	cd docs && make clean
+
 clean:
 	rm -rf __pycache__
 	rm -rf tests/__pycache__
@@ -24,3 +32,4 @@ clean:
 	rm -rf dist
 	rm -rf dowhen.egg-info
 	rm -rf src/dowhen.egg-info
+	rm -rf docs/_build

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import sys
 from collections import defaultdict
+from types import CodeType, FrameType
 
 from .handler import EventHandler
 
@@ -19,7 +20,7 @@ class Instrumenter:
             cls._instance._intialized = False
         return cls._instance
 
-    def __init__(self, tool_id=4):
+    def __init__(self, tool_id: int = 4):
         if not self._intialized:
             self.tool_id = tool_id
             self.handlers = defaultdict(dict)
@@ -34,12 +35,12 @@ class Instrumenter:
             )
             self._intialized = True
 
-    def clear_all(self):
+    def clear_all(self) -> None:
         for code in self.handlers:
             sys.monitoring.set_local_events(self.tool_id, code, E.NO_EVENTS)
         self.handlers.clear()
 
-    def submit(self, event_handler: EventHandler):
+    def submit(self, event_handler: EventHandler) -> None:
         trigger = event_handler.trigger
         for event in trigger.events:
             code = event.code
@@ -58,7 +59,9 @@ class Instrumenter:
             elif event.event_type == "return":
                 self.register_return_event(code, event_handler)
 
-    def register_line_event(self, code, line_number, event_handler: EventHandler):
+    def register_line_event(
+        self, code: CodeType, line_number: int, event_handler: EventHandler
+    ) -> None:
         self.handlers[code].setdefault("line", {}).setdefault(line_number, []).append(
             event_handler
         )
@@ -67,7 +70,7 @@ class Instrumenter:
         sys.monitoring.set_local_events(self.tool_id, code, events | E.LINE)
         sys.monitoring.restart_events()
 
-    def line_callback(self, code, line_number):  # pragma: no cover
+    def line_callback(self, code: CodeType, line_number: int):  # pragma: no cover
         if code in self.handlers:
             handlers = self.handlers[code].get("line", {}).get(line_number, [])
             handlers.extend(self.handlers[code].get("line", {}).get(None, []))
@@ -75,44 +78,48 @@ class Instrumenter:
                 return self._process_handlers(handlers, sys._getframe(1))
         return sys.monitoring.DISABLE
 
-    def register_start_event(self, code, event_handler: EventHandler):
+    def register_start_event(self, code: CodeType, event_handler: EventHandler) -> None:
         self.handlers[code].setdefault("start", []).append(event_handler)
 
         events = sys.monitoring.get_local_events(self.tool_id, code)
         sys.monitoring.set_local_events(self.tool_id, code, events | E.PY_START)
         sys.monitoring.restart_events()
 
-    def start_callback(self, code, offset):  # pragma: no cover
+    def start_callback(self, code: CodeType, offset):  # pragma: no cover
         if code in self.handlers:
             handlers = self.handlers[code].get("start", [])
             if handlers:
                 return self._process_handlers(handlers, sys._getframe(1))
         return sys.monitoring.DISABLE
 
-    def register_return_event(self, code, event_handler: EventHandler):
+    def register_return_event(
+        self, code: CodeType, event_handler: EventHandler
+    ) -> None:
         self.handlers[code].setdefault("return", []).append(event_handler)
 
         events = sys.monitoring.get_local_events(self.tool_id, code)
         sys.monitoring.set_local_events(self.tool_id, code, events | E.PY_RETURN)
         sys.monitoring.restart_events()
 
-    def return_callback(self, code, offset, retval):  # pragma: no cover
+    def return_callback(self, code: CodeType, offset, retval):  # pragma: no cover
         if code in self.handlers:
             handlers = self.handlers[code].get("return", [])
             if handlers:
                 return self._process_handlers(handlers, sys._getframe(1))
         return sys.monitoring.DISABLE
 
-    def _process_handlers(self, handlers, frame):  # pragma: no cover
+    def _process_handlers(
+        self, handlers: list[EventHandler], frame: FrameType
+    ):  # pragma: no cover
         disable = sys.monitoring.DISABLE
         for handler in handlers:
             disable = handler(frame) and disable
         return sys.monitoring.DISABLE if disable else None
 
-    def restart_events(self):
+    def restart_events(self) -> None:
         sys.monitoring.restart_events()
 
-    def remove_handler(self, event_handler: EventHandler):
+    def remove_handler(self, event_handler: EventHandler) -> None:
         trigger = event_handler.trigger
         for event in trigger.events:
             code = event.code
@@ -153,5 +160,5 @@ class Instrumenter:
                     )
 
 
-def clear_all():
+def clear_all() -> None:
     Instrumenter().clear_all()

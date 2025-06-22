@@ -38,11 +38,11 @@ class Callback:
         ret = None
         if isinstance(self.func, str):
             if self.func == "goto":  # pragma: no cover
-                self.call_goto(frame)
+                self._call_goto(frame)
             else:
-                self.call_code(frame)
+                self._call_code(frame)
         elif inspect.isfunction(self.func) or inspect.ismethod(self.func):
-            ret = self.call_function(frame)
+            ret = self._call_function(frame)
         else:  # pragma: no cover
             assert False, "Unknown callback type"
 
@@ -54,11 +54,11 @@ class Callback:
         if ret is DISABLE:
             return DISABLE
 
-    def call_code(self, frame: FrameType) -> None:
+    def _call_code(self, frame: FrameType) -> None:
         assert isinstance(self.func, str)
         exec(self.func, frame.f_globals, frame.f_locals)
 
-    def call_function(self, frame: FrameType) -> Any:
+    def _call_function(self, frame: FrameType) -> Any:
         assert isinstance(self.func, (FunctionType, MethodType))
         writeback = call_in_frame(self.func, frame)
 
@@ -76,7 +76,7 @@ class Callback:
                 f"got {type(writeback)} instead."
             )
 
-    def call_goto(self, frame: FrameType) -> None:  # pragma: no cover
+    def _call_goto(self, frame: FrameType) -> None:  # pragma: no cover
         # Changing frame.f_lineno is only allowed in trace functions so it's
         # impossible to get coverage for this function
         target = self.kwargs["target"]

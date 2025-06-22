@@ -13,3 +13,8 @@ coverage
 pytest
 pytest-cov
 coredumpy
+
+# Documentation requirements
+sphinx>=8.0
+sphinx-rtd-theme
+sphinx-autodoc-typehints
