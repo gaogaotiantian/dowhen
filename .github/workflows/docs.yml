@@ -21,6 +21,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependency
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
       - name: Build documentation
         run: make docs
