@@ -32,7 +32,7 @@ assert f(0) == 1
 An instrumentation is basically a callback on a trigger. You can think of
 `do` as a callback, and `when` as a trigger.
 
-See detailed documentation at https://viztracer.readthedocs.io/
+See detailed documentation at https://dowhen.readthedocs.io/
 
 ## License
 
