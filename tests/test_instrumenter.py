@@ -104,7 +104,7 @@ def test_disable_from_callback():
     f(0)
     f(0)
     assert call_count == 1
-    assert not handler.enabled
+    assert handler.disabled
 
     handler.enable()
     f(0)
@@ -132,7 +132,7 @@ def test_disable_from_condition():
     f(0)
     f(0)
     assert call_count == 1
-    assert not handler.enabled
+    assert handler.disabled
 
     handler.enable()
     f(0)

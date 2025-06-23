@@ -54,11 +54,11 @@ def test_handler_disable():
     handler = dowhen.do(cb).when(f, "return x")
     frame = sys._getframe()
     assert handler(frame) is dowhen.DISABLE
-    assert not handler.enabled
+    assert handler.disabled
 
     handler = dowhen.do("x = 1").when(f, "return x", condition=lambda: dowhen.DISABLE)
     assert handler(frame) is dowhen.DISABLE
-    assert not handler.enabled
+    assert handler.disabled
 
 
 def test_remove():

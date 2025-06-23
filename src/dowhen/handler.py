@@ -18,20 +18,22 @@ DISABLE = sys.monitoring.DISABLE
 class EventHandler:
     def __init__(self, trigger: Trigger, callback: Callback):
         self.trigger = trigger
-        self.callback = callback
-        self.enabled = True
+        self.callbacks: list[Callback] = [callback]
+        self.disabled = False
         self.removed = False
 
     def disable(self) -> None:
         if self.removed:
             raise RuntimeError("Cannot disable a removed handler.")
-        self.enabled = False
+        self.disabled = True
 
     def enable(self) -> None:
         if self.removed:
             raise RuntimeError("Cannot enable a removed handler.")
-        if not self.enabled:
-            self.enabled = True
+        if self.disabled:
+            self.disabled = False
+            from .instrumenter import Instrumenter
+
             Instrumenter().restart_events()
 
     def submit(self) -> None:
@@ -42,13 +44,14 @@ class EventHandler:
         self.removed = True
 
     def __call__(self, frame: FrameType) -> Any:
-        if self.enabled:
+        if not self.disabled:
             should_fire = self.trigger.should_fire(frame)
             if should_fire is DISABLE:
                 self.disable()
             elif should_fire:
-                if self.callback(frame) is DISABLE:
-                    self.disable()
+                for cb in self.callbacks:
+                    if cb(frame) is DISABLE:
+                        self.disable()
 
-        if not self.enabled:
+        if self.disabled:
             return DISABLE
