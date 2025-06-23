@@ -9,7 +9,7 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any, Literal
 
-from .util import call_in_frame, get_line_numbers
+from .util import call_in_frame, get_line_numbers, get_source_hash
 
 if TYPE_CHECKING:  # pragma: no cover
     from .callback import Callback
@@ -84,6 +84,7 @@ class Trigger:
         entity: CodeType | FunctionType | MethodType | ModuleType | type,
         *identifiers: str | int | tuple | list,
         condition: str | Callable[..., bool | Any] | None = None,
+        source_hash: str | None = None,
     ):
         if isinstance(condition, str):
             try:
@@ -94,6 +95,16 @@ class Trigger:
             raise TypeError(
                 f"Condition must be a string or callable, got {type(condition)}"
             )
+
+        if source_hash is not None:
+            if not isinstance(source_hash, str):
+                raise TypeError(
+                    f"source_hash must be a string, got {type(source_hash)}"
+                )
+            if get_source_hash(entity) != source_hash:
+                raise ValueError(
+                    "The source hash does not match the entity's source code."
+                )
 
         events = []
 

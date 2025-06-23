@@ -209,6 +209,21 @@ def test_condition():
         dowhen.when(f, "return x", condition=1.5)
 
 
+def test_source_hash():
+    def f(x):
+        return x
+
+    source_hash = dowhen.get_source_hash(f)
+
+    dowhen.when(f, "return x", source_hash=source_hash)
+
+    with pytest.raises(ValueError):
+        dowhen.when(f, "return x", source_hash=source_hash + "1")
+
+    with pytest.raises(TypeError):
+        dowhen.when(f, "return x", source_hash=123)
+
+
 def test_should_fire():
     def f(x):
         return x

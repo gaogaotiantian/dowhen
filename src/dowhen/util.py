@@ -7,7 +7,7 @@ from __future__ import annotations
 import functools
 import inspect
 from collections.abc import Callable
-from types import CodeType, FrameType
+from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import Any
 
 
@@ -64,3 +64,10 @@ def call_in_frame(func: Callable, frame: FrameType) -> Any:
             raise TypeError(f"Argument '{arg}' not found in frame locals.")
         args.append(f_locals[arg])
     return func(*args)
+
+
+def get_source_hash(entity: CodeType | FunctionType | MethodType | ModuleType | type):
+    import hashlib
+
+    source = inspect.getsource(entity)
+    return hashlib.md5(source.encode("utf-8")).hexdigest()[-8:]

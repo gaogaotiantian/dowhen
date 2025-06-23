@@ -152,6 +152,28 @@ If the condition function returns ``dowhen.DISABLE``, the trigger will not fire 
    assert f(2) == 2  # x is not modified and the trigger is disabled
    assert f(0) == 0  # x is not modified anymore
 
+Source Hash
+^^^^^^^^^^^
+
+If you need to confirm that the source code of the function has not changed,
+you can use the ``source_hash`` argument.
+
+.. code-block:: python
+
+   from dowhen import when, get_source_hash
+
+   def f(x):
+       return x
+
+   # Calculate this once and use the constant in your code
+   source_hash = get_source_hash(f)
+   # This will raise an error if the source code of f changes
+   when(f, "return x", source_hash=source_hash).do("x = 1")
+
+``source_hash`` is not a security feature. It is just a sanity check to ensure
+that the source code of the function has not changed so your instrumentation
+is still valid. It's just the a piece of md5 has of the source code of the function.
+
 Callbacks
 ---------
 

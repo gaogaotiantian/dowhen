@@ -119,10 +119,13 @@ class Callback:
         entity: CodeType | FunctionType | MethodType | ModuleType | type,
         *identifiers: str | int | tuple | list,
         condition: str | Callable[..., bool | Any] | None = None,
+        source_hash: str | None = None,
     ) -> "EventHandler":
         from .trigger import when
 
-        trigger = when(entity, *identifiers, condition=condition)
+        trigger = when(
+            entity, *identifiers, condition=condition, source_hash=source_hash
+        )
 
         from .handler import EventHandler
 
