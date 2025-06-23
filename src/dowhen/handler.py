@@ -9,6 +9,7 @@ from types import FrameType
 from typing import Any
 
 from .callback import Callback
+from .instrumenter import Instrumenter
 from .trigger import Trigger
 
 DISABLE = sys.monitoring.DISABLE
@@ -31,13 +32,12 @@ class EventHandler:
             raise RuntimeError("Cannot enable a removed handler.")
         if not self.enabled:
             self.enabled = True
-            from .instrumenter import Instrumenter
-
             Instrumenter().restart_events()
 
-    def remove(self) -> None:
-        from .instrumenter import Instrumenter
+    def submit(self) -> None:
+        Instrumenter().submit(self)
 
+    def remove(self) -> None:
         Instrumenter().remove_handler(self)
         self.removed = True
 

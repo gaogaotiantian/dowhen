@@ -126,10 +126,7 @@ class Callback:
         from .handler import EventHandler
 
         handler = EventHandler(trigger, self)
-
-        from .instrumenter import Instrumenter
-
-        Instrumenter().submit(handler)
+        handler.submit()
 
         return handler
 

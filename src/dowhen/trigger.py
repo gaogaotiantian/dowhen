@@ -159,9 +159,8 @@ class Trigger:
         from .handler import EventHandler
 
         handler = EventHandler(self, callback)
-        from .instrumenter import Instrumenter
+        handler.submit()
 
-        Instrumenter().submit(handler)
         return handler
 
 
