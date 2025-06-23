@@ -36,7 +36,6 @@ Quick Start
    assert f(0) == 100
 
    # bp() is another callback that brings up pdb
-   # You don't need to store the handler if you don't use it
    handler = bp().when(f, "return x")
    # This will enter pdb
    f(0)
