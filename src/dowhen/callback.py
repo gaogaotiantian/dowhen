@@ -109,7 +109,12 @@ class Callback:
 
             p = pdb.Pdb()
             p.set_trace(_frame)
-            with p.set_enterframe(_frame):
+            if hasattr(p, "set_enterframe"):
+                # set_enterframe is backported to 3.12 so the early versions
+                # of Python 3.12 will not have this method
+                with p.set_enterframe(_frame):
+                    p.user_line(_frame)
+            else:
                 p.user_line(_frame)
 
         return cls(do_breakpoint)
