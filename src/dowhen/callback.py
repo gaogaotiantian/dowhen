@@ -109,7 +109,8 @@ class Callback:
 
             p = pdb.Pdb()
             p.set_trace(_frame)
-            p.user_line(_frame)
+            with p.set_enterframe(_frame):
+                p.user_line(_frame)
 
         return cls(do_breakpoint)
 
