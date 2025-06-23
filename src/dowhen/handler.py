@@ -32,8 +32,6 @@ class EventHandler:
             raise RuntimeError("Cannot enable a removed handler.")
         if self.disabled:
             self.disabled = False
-            from .instrumenter import Instrumenter
-
             Instrumenter().restart_events()
 
     def submit(self) -> None:
