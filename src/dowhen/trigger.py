@@ -135,7 +135,7 @@ class Trigger:
     def do(self, func: str | Callable) -> "EventHandler":
         from .callback import Callback
 
-        return self._submit_callback(Callback(func))
+        return self._submit_callback(Callback.do(func))
 
     def goto(self, target: str | int) -> "EventHandler":
         from .callback import Callback
