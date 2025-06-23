@@ -8,6 +8,8 @@ import pytest
 
 import dowhen
 
+from .util import do_pdb_test
+
 
 def test_enable_disable():
     def f(x):
@@ -76,3 +78,24 @@ def test_remove():
 
     # double remove should be safe
     handler.remove()
+
+
+def test_chain():
+    def f(x):
+        x += 1
+        assert False
+        return x
+
+    dowhen.when(f, "x += 1").do("x += 1").do("x += 1").goto("return x").bp()
+
+    commands = """
+        p x + 100
+        c
+    """
+
+    with do_pdb_test(commands) as output:
+        assert f(0) == 2
+
+    out = output.getvalue()
+    assert "(Pdb) " in out
+    assert "102" in out

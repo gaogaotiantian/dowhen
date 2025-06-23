@@ -18,7 +18,7 @@ pip install dowhen
 ## Usage
 
 ```python
-from dowhen import do, goto, bp
+from dowhen import bp, do, goto, when
 
 def f(x):
     x += 100
@@ -49,8 +49,12 @@ handler.disable()
 # goto() is a callback too
 # This will skip the line of `x += 100`
 # You don't need to store the handler if you don't use it
-goto("return x").when("x += 100")
+goto("return x").when(f, "x += 100")
 assert f(0) == 0
+
+# You can chain callbacks and they'll run in order
+when(f, "x += 100").goto("return x").do("x = 42")
+assert f(0) == 42
 ```
 
 See detailed documentation at https://dowhen.readthedocs.io/

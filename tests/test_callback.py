@@ -2,13 +2,13 @@
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
 
-import io
 import sys
-import textwrap
 
 import pytest
 
 import dowhen
+
+from .util import do_pdb_test
 
 
 def test_do_when():
@@ -158,43 +158,24 @@ def test_bp():
         x = x + 1
         return x
 
-    command = textwrap.dedent("""
+    command = """
         w
         n
         c
-    """)
+    """
 
-    command_input = io.StringIO(command)
-    command_input2 = io.StringIO(command)
-
-    output = io.StringIO()
-    output2 = io.StringIO()
-
-    _stdin = sys.stdin
-    _stdout = sys.stdout
-    _trace_func = sys.gettrace()
-    try:
-        sys.stdin = command_input
-        sys.stdout = output
-        dowhen.bp().when(f, "x = x + 1")
-        # coverage confuses pdb
-        sys.settrace(None)
+    handler1 = dowhen.bp().when(f, "x = x + 1")
+    with do_pdb_test(command) as output1:
         f(0)
-        sys.settrace(_trace_func)
+    handler1.remove()
 
-        sys.stdin = command_input2
-        sys.stdout = output2
-        dowhen.when(f, "return x").bp()
-        sys.settrace(None)
+    handler2 = dowhen.when(f, "x = x + 1").bp()
+    with do_pdb_test(command) as output2:
         f(0)
-        sys.settrace(_trace_func)
-    finally:
-        sys.settrace(_trace_func)
-        sys.stdin = _stdin
-        sys.stdout = _stdout
+    handler2.remove()
 
-    for out in (output.getvalue(), output2.getvalue()):
+    for out in (output1.getvalue(), output2.getvalue()):
         assert "x = x + 1" in out
-        assert "(Pdb)" in out
+        assert "(Pdb) " in out
         assert "test_bp()" in out
         assert "return x" in out

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import sys
 from types import FrameType
-from typing import Any
+from typing import Any, Callable
 
 from .callback import Callback
 from .instrumenter import Instrumenter
@@ -53,3 +53,21 @@ class EventHandler:
 
         if self.disabled:
             return DISABLE
+
+    def bp(self) -> "EventHandler":
+        from .callback import Callback
+
+        self.callbacks.append(Callback.bp())
+        return self
+
+    def do(self, func: str | Callable) -> "EventHandler":
+        from .callback import Callback
+
+        self.callbacks.append(Callback(func))
+        return self
+
+    def goto(self, target: str | int) -> "EventHandler":
+        from .callback import Callback
+
+        self.callbacks.append(Callback.goto(target))
+        return self

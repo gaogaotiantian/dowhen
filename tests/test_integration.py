@@ -69,12 +69,16 @@ def test_signature():
 
     callback = dowhen.do("x = 1")
     trigger = dowhen.when(f)
+    handler = dowhen.do("x = 1").when(f)
 
     signature_pairs = [
         (callback.when, dowhen.when),
         (trigger.do, dowhen.do),
+        (handler.do, dowhen.do),
         (trigger.goto, dowhen.goto),
+        (handler.goto, dowhen.goto),
         (trigger.bp, dowhen.bp),
+        (handler.bp, dowhen.bp),
     ]
     for func1, func2 in signature_pairs:
         assert (
