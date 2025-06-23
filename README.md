@@ -1,6 +1,6 @@
 # dowhen
 
-[![build](https://github.com/gaogaotiantian/dowhen/actions/workflows/build_test.yaml/badge.svg)](https://github.com/gaogaotiantian/dowhen/actions/workflows/build_test.yaml)
+[![build](https://github.com/gaogaotiantian/dowhen/actions/workflows/build_test.yml/badge.svg)](https://github.com/gaogaotiantian/dowhen/actions/workflows/build_test.yml)
 [![readthedocs](https://img.shields.io/readthedocs/dowhen)](https://dowhen.readthedocs.io/)
 [![coverage](https://img.shields.io/codecov/c/github/gaogaotiantian/dowhen)](https://codecov.io/gh/gaogaotiantian/dowhen)
 [![pypi](https://img.shields.io/pypi/v/dowhen.svg)](https://pypi.org/project/dowhen/)
