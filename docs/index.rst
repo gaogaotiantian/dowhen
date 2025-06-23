@@ -46,11 +46,12 @@ Quick Start
 
    # goto() is a callback too
    # This will skip the line of `x += 100`
-   # You don't need to store the handler if you don't use it
-   goto("return x").when(f, "x += 100")
-   assert f(0) == 0
+   # The handler will be removed after the context
+   with goto("return x").when(f, "x += 100"):
+       assert f(0) == 0
 
    # You can chain callbacks and they'll run in order
+   # You don't need to store the handler if you don't use it
    when(f, "x += 100").goto("return x").do("x = 42")
    assert f(0) == 42
 

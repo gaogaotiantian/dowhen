@@ -54,6 +54,12 @@ class EventHandler:
         if self.disabled:
             return DISABLE
 
+    def __enter__(self) -> "EventHandler":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.remove()
+
     def bp(self) -> "EventHandler":
         from .callback import Callback
 

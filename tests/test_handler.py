@@ -80,6 +80,15 @@ def test_remove():
     handler.remove()
 
 
+def test_with():
+    def f(x):
+        return x
+
+    with dowhen.do("x = 1").when(f, "return x"):
+        assert f(0) == 1
+    assert f(0) == 0
+
+
 def test_chain():
     def f(x):
         x += 1
