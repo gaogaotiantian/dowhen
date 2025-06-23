@@ -253,6 +253,33 @@ When you combine a trigger with a callback, you create a handler.
    handler.remove()
    assert f(0) == 0  # x is not modified anymore
 
+You can use ``with`` statement to create a handler that is automatically removed after the block:
+
+.. code-block:: python
+
+   from dowhen import do
+
+   def f(x):
+       return x
+
+   with do("x = 1").when(f, "return x"):
+       assert f(0) == 1
+   assert f(0) == 0
+
+``Handler`` can use ``do``, ``bp``, and ``goto`` as well, which allows you to
+chain multiple callbacks together:
+
+.. code-block:: python
+
+   from dowhen import when
+
+   def f(x):
+       x += 100
+       return x
+
+   when(f, "x += 100").goto("return x").do("x += 1")
+   assert f(0) == 1
+
 Utilities
 ---------
 
