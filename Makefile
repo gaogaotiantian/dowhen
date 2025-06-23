@@ -3,6 +3,7 @@ build:
 
 install:
 	pip install -e .
+	pip install -r requirements-dev.txt
 
 lint:
 	ruff check src tests
