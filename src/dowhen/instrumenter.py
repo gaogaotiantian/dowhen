@@ -24,6 +24,14 @@ class Instrumenter:
         return cls._instance
 
     def __init__(self, tool_id: int = 4):
+        """
+        Initialize the instrumenter with a monitoring tool ID.
+        
+        Args:
+            tool_id: Tool ID for sys.monitoring registration. Defaults to 4 to avoid
+                    conflicts with predefined IDs (0=debugger, 1=coverage, 2=profiler, 5=optimizer).
+                    See: https://docs.python.org/3.12/library/sys.monitoring.html
+        """
         if not self._intialized:
             self.tool_id = tool_id
             self.handlers: defaultdict[CodeType, dict] = defaultdict(dict)
