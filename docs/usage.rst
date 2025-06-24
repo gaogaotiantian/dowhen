@@ -195,7 +195,10 @@ Callbacks
 If you are using a function for ``do``, the local variables that match the function arguments
 will be automatically passed to the function.
 
-A special case is that when you have ``_frame`` as an argument, it will be passed the current frame object.
+Special arguments:
+
+* ``_frame`` - when used, the current frame object is passed.
+* ``_retval`` - when used, the return value of the function is passed. Only valid for ``<return>`` triggers.
 
 If you want to change the value of the local variables, you need to return a dictionary
 with the variable names as keys and the new values as values.
@@ -213,6 +216,13 @@ You can also return ``dowhen.DISABLE`` to disable the trigger.
        return {"x": 1}
 
    do(callback).when(f, "return x")
+   assert f(0) == 1
+
+   def callback_special(_frame, _retval):
+       assert _frame.f_locals["x"] == 1
+       assert _retval == 1
+
+   do(callback_special).when(f, "<return>")
    assert f(0) == 1
 
 ``bp``

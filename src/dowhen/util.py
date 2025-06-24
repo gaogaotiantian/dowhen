@@ -53,16 +53,21 @@ def get_func_args(func: Callable) -> list[str]:
     return inspect.getfullargspec(func).args
 
 
-def call_in_frame(func: Callable, frame: FrameType) -> Any:
+def call_in_frame(func: Callable, frame: FrameType, **kwargs) -> Any:
     f_locals = frame.f_locals
     args = []
     for arg in get_func_args(func):
         if arg == "_frame":
-            args.append(frame)
-            continue
-        if arg not in f_locals:
+            argval = frame
+        elif arg == "_retval":
+            if "retval" not in kwargs:
+                raise TypeError("You can only use '_retval' in <return> callbacks.")
+            argval = kwargs["retval"]
+        elif arg in f_locals:
+            argval = f_locals[arg]
+        else:
             raise TypeError(f"Argument '{arg}' not found in frame locals.")
-        args.append(f_locals[arg])
+        args.append(argval)
     return func(*args)
 
 

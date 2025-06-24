@@ -110,15 +110,15 @@ class Instrumenter:
         if code in self.handlers:
             handlers = self.handlers[code].get("return", [])
             if handlers:
-                return self._process_handlers(handlers, sys._getframe(1))
+                return self._process_handlers(handlers, sys._getframe(1), retval=retval)
         return sys.monitoring.DISABLE
 
     def _process_handlers(
-        self, handlers: list["EventHandler"], frame: FrameType
+        self, handlers: list["EventHandler"], frame: FrameType, **kwargs
     ):  # pragma: no cover
         disable = sys.monitoring.DISABLE
         for handler in handlers:
-            disable = handler(frame) and disable
+            disable = handler(frame, **kwargs) and disable
         return sys.monitoring.DISABLE if disable else None
 
     def restart_events(self) -> None:

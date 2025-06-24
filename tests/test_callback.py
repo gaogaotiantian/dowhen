@@ -93,6 +93,33 @@ def test_callback_writeback():
     dowhen.clear_all()
 
 
+def test_callback_retval():
+    def f(x):
+        return x
+
+    retval_holder = []
+
+    def cb(_retval):
+        retval_holder.append(_retval)
+
+    with dowhen.do(cb).when(f, "<return>"):
+        assert f(0) == 0
+        assert retval_holder == [0]
+
+    with pytest.raises(TypeError):
+        with dowhen.do(cb).when(f, "return x"):
+            f(0)
+
+    retval_holder.clear()
+    callback = dowhen.do(cb)
+    frame = sys._getframe()
+    assert callback(frame, retval=0) is None
+    assert retval_holder == [0]
+
+    with pytest.raises(TypeError):
+        callback(frame)
+
+
 def test_callback_disable():
     def cb():
         return dowhen.DISABLE

@@ -41,14 +41,14 @@ class EventHandler:
         Instrumenter().remove_handler(self)
         self.removed = True
 
-    def __call__(self, frame: FrameType) -> Any:
+    def __call__(self, frame: FrameType, **kwargs) -> Any:
         if not self.disabled:
             should_fire = self.trigger.should_fire(frame)
             if should_fire is DISABLE:
                 self.disable()
             elif should_fire:
                 for cb in self.callbacks:
-                    if cb(frame) is DISABLE:
+                    if cb(frame, **kwargs) is DISABLE:
                         self.disable()
 
         if self.disabled:

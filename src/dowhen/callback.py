@@ -34,7 +34,7 @@ class Callback:
         self.func = func
         self.kwargs = kwargs
 
-    def __call__(self, frame):
+    def __call__(self, frame, **kwargs) -> Any:
         ret = None
         if isinstance(self.func, str):
             if self.func == "goto":  # pragma: no cover
@@ -42,7 +42,7 @@ class Callback:
             else:
                 self._call_code(frame)
         elif inspect.isfunction(self.func) or inspect.ismethod(self.func):
-            ret = self._call_function(frame)
+            ret = self._call_function(frame, **kwargs)
         else:  # pragma: no cover
             assert False, "Unknown callback type"
 
@@ -58,9 +58,9 @@ class Callback:
         assert isinstance(self.func, str)
         exec(self.func, frame.f_globals, frame.f_locals)
 
-    def _call_function(self, frame: FrameType) -> Any:
+    def _call_function(self, frame: FrameType, **kwargs) -> Any:
         assert isinstance(self.func, (FunctionType, MethodType))
-        writeback = call_in_frame(self.func, frame)
+        writeback = call_in_frame(self.func, frame, **kwargs)
 
         f_locals = frame.f_locals
         if isinstance(writeback, dict):
