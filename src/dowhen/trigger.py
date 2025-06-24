@@ -59,7 +59,13 @@ class Trigger:
 
         for entity in entity_list:
             if inspect.isfunction(entity) or inspect.ismethod(entity):
-                direct_code_objects.append(entity.__code__)
+                entity = inspect.unwrap(entity)
+                if inspect.isfunction(entity) or inspect.ismethod(entity):
+                    direct_code_objects.append(entity.__code__)
+                else:  # pragma: no cover
+                    raise TypeError(
+                        f"Expected a function or method, got {type(entity)}"
+                    )
             elif inspect.iscode(entity):
                 direct_code_objects.append(entity)
             else:

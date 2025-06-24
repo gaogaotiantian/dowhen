@@ -1,6 +1,8 @@
 # Licensed under the Apache License: http://www.apache.org/licenses/LICENSE-2.0
 # For details: https://github.com/gaogaotiantian/dowhen/blob/master/NOTICE.txt
 
+
+import functools
 import sys
 
 import pytest
@@ -125,6 +127,22 @@ def test_class():
     a = A()
     assert a.f(2) == 1
     assert a.g(2) == 1
+
+
+def test_decorator():
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(x):
+            return func(x)
+
+        return wrapper
+
+    @decorator
+    def f(x):
+        return x
+
+    dowhen.when(f, "return x").do("x = 1")
+    assert f(0) == 1
 
 
 def test_every_line():
