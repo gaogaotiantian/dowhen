@@ -10,7 +10,7 @@ jobs:
   lint:
     strategy:
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.13t']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
