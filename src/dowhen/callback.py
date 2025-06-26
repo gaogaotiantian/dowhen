@@ -121,8 +121,8 @@ class Callback:
 
     def when(
         self,
-        entity: CodeType | FunctionType | MethodType | ModuleType | type,
-        *identifiers: str | int | tuple | list,
+        entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
+        *identifiers: str | int | tuple,
         condition: str | Callable[..., bool | Any] | None = None,
         source_hash: str | None = None,
     ) -> "EventHandler":

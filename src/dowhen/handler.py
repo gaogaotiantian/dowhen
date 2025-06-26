@@ -43,6 +43,8 @@ class EventHandler:
 
     def __call__(self, frame: FrameType, **kwargs) -> Any:
         if not self.disabled:
+            if not self.trigger.has_event(frame):
+                return DISABLE
             should_fire = self.trigger.should_fire(frame)
             if should_fire is DISABLE:
                 self.disable()

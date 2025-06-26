@@ -45,6 +45,12 @@ def test_handler_call():
     handler(frame)
     assert x == 0
 
+    with dowhen.do("pass").when(None, "assert") as handler:
+        assert handler(frame) is None
+
+    with dowhen.do("pass").when(None, "pass") as handler:
+        assert handler(frame) is dowhen.DISABLE
+
 
 def test_handler_disable():
     def f(x):

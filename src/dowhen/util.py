@@ -11,6 +11,7 @@ from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import Any
 
 
+@functools.lru_cache(maxsize=256)
 def get_line_numbers(
     code: CodeType, identifier: int | str | list | tuple
 ) -> list[int] | None:
@@ -26,7 +27,10 @@ def get_line_numbers(
             if ident.startswith("+") and ident[1:].isdigit():
                 line_numbers_sets.append({code.co_firstlineno + int(ident[1:])})
             else:
-                lines, start_line = inspect.getsourcelines(code)
+                try:
+                    lines, start_line = inspect.getsourcelines(code)
+                except OSError:
+                    return None
                 line_numbers = set()
                 for i, line in enumerate(lines):
                     if line.strip().startswith(ident):

@@ -50,6 +50,7 @@ def func_test(x, y):
         ("x = 2", func_test, ("return x",), ([0, 0], (2, 1))),
         ("x += 1", func_test, ("return x", "<start>"), ([0, 0], (3, 1))),
         ("x += 1", func_test, (), ([0, 0], (4, 1))),
+        ("x = 2", None, ("return x",), ([0, 0], (2, 1))),
     ],
 )
 def test_integration(cb_func, entity, identifiers, expected_results):

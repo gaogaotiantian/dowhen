@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import inspect
+import sys
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any, Literal
@@ -16,10 +17,13 @@ if TYPE_CHECKING:  # pragma: no cover
     from .handler import EventHandler
 
 
+DISABLE = sys.monitoring.DISABLE
+
+
 class _Event:
     def __init__(
         self,
-        code: CodeType,
+        code: CodeType | None,
         event_type: Literal["line", "start", "return"],
         event_data: dict | None,
     ):
@@ -33,14 +37,16 @@ class Trigger:
         self,
         events: list[_Event],
         condition: str | Callable[..., bool] | None = None,
+        is_global: bool = False,
     ):
         self.events = events
         self.condition = condition
+        self.is_global = is_global
 
     @classmethod
     def _get_code_from_entity(
-        cls, entity: CodeType | FunctionType | MethodType | ModuleType | type
-    ) -> tuple[list[CodeType], list[CodeType]]:
+        cls, entity: CodeType | FunctionType | MethodType | ModuleType | type | None
+    ) -> tuple[list[CodeType] | list[None], list[CodeType] | list[None]]:
         """
         Get the direct code objects and the internal code objects from the given entity.
         """
@@ -48,6 +54,9 @@ class Trigger:
         all_code_objects: list[CodeType] = []
 
         entity_list = []
+
+        if entity is None:
+            return [None], [None]
 
         if inspect.ismodule(entity) or inspect.isclass(entity):
             for _, obj in inspect.getmembers_static(
@@ -87,8 +96,8 @@ class Trigger:
     @classmethod
     def when(
         cls,
-        entity: CodeType | FunctionType | MethodType | ModuleType | type,
-        *identifiers: str | int | tuple | list,
+        entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
+        *identifiers: str | int | tuple,
         condition: str | Callable[..., bool | Any] | None = None,
         source_hash: str | None = None,
     ):
@@ -107,6 +116,8 @@ class Trigger:
                 raise TypeError(
                     f"source_hash must be a string, got {type(source_hash)}"
                 )
+            if entity is None:
+                raise ValueError("source_hash cannot be used with a None entity.")
             if get_source_hash(entity) != source_hash:
                 raise ValueError(
                     "The source hash does not match the entity's source code."
@@ -119,30 +130,40 @@ class Trigger:
         if not identifiers:
             for code in direct_code_objects:
                 events.append(_Event(code, "line", {"line_number": None}))
-            return cls(events, condition=condition)
-
-        for identifier in identifiers:
-            if identifier == "<start>":
-                for code in direct_code_objects:
-                    events.append(_Event(code, "start", None))
-            elif identifier == "<return>":
-                for code in direct_code_objects:
-                    events.append(_Event(code, "return", None))
-
-            for code in all_code_objects:
-                line_numbers = get_line_numbers(code, identifier)
-                if line_numbers is not None:
-                    for line_number in line_numbers:
-                        events.append(
-                            _Event(code, "line", {"line_number": line_number})
-                        )
+        else:
+            for identifier in identifiers:
+                if identifier == "<start>":
+                    for code in direct_code_objects:
+                        events.append(_Event(code, "start", None))
+                elif identifier == "<return>":
+                    for code in direct_code_objects:
+                        events.append(_Event(code, "return", None))
+                else:
+                    for code in all_code_objects:
+                        if code is None:
+                            events.append(
+                                _Event(
+                                    None,
+                                    "line",
+                                    {"line_number": None, "identifier": identifier},
+                                )
+                            )
+                        else:
+                            line_numbers = get_line_numbers(code, identifier)
+                            if line_numbers is not None:
+                                for line_number in line_numbers:
+                                    events.append(
+                                        _Event(
+                                            code, "line", {"line_number": line_number}
+                                        )
+                                    )
 
         if not events:
             raise ValueError(
                 "Could not set any event based on the entity and identifiers."
             )
 
-        return cls(events, condition=condition)
+        return cls(events, condition=condition, is_global=entity is None)
 
     def bp(self) -> "EventHandler":
         from .callback import Callback
@@ -159,7 +180,18 @@ class Trigger:
 
         return self._submit_callback(Callback.goto(target))
 
-    def should_fire(self, frame: FrameType) -> bool:
+    def has_event(self, frame: FrameType) -> bool | Any:
+        if self.is_global and self.events[0].event_type == "line":
+            identifier = self.events[0].event_data.get("identifier")
+            assert isinstance(identifier, (str, int, tuple))
+            line_numbers = get_line_numbers(frame.f_code, identifier)
+            if line_numbers is None:
+                return False
+            elif frame.f_lineno not in line_numbers:
+                return False
+        return True
+
+    def should_fire(self, frame: FrameType) -> bool | Any:
         if self.condition is None:
             return True
         try:

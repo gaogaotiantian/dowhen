@@ -192,6 +192,29 @@ def test_mix_events():
     assert write_back == [1, 1]
 
 
+def test_global_events():
+    def f(x):
+        x += 1
+        return x
+
+    events = []
+
+    def f_callback(_frame):
+        if _frame.f_code.co_name == "f":
+            events.append(0)
+
+    with dowhen.when(None, "<start>").do(f_callback):
+        f(0)
+
+    with dowhen.when(None, "<return>").do(f_callback):
+        f(0)
+
+    with dowhen.when(None, "return").do(f_callback):
+        f(0)
+
+    assert events == [0, 0, 0]
+
+
 def test_goto():
     def f():
         x = 0
@@ -260,6 +283,22 @@ def test_should_fire():
         assert trigger.should_fire(frame) is False
 
 
+def test_has_event():
+    def f(x):
+        x += 1
+        return x
+
+    frame = sys._getframe()
+    trigger = dowhen.when(None, "assert")
+    assert trigger.has_event(frame) is True
+
+    trigger = dowhen.when(None, "trigger")
+    assert trigger.has_event(frame) is False
+
+    trigger = dowhen.when(f, "return x")
+    assert trigger.has_event(frame) is True
+
+
 def test_invalid_type():
     def f():
         pass
@@ -269,6 +308,9 @@ def test_invalid_type():
 
     with pytest.raises(TypeError):
         dowhen.when(f, 1.5)
+
+    with pytest.raises(ValueError):
+        dowhen.when(None, "return", source_hash="12345678")
 
 
 def test_invalid_line_number():
@@ -280,3 +322,7 @@ def test_invalid_line_number():
 
     with pytest.raises(ValueError):
         dowhen.when(f, "+1000")
+
+    code = compile("pass", "<string>", "exec")
+    with pytest.raises(ValueError):
+        dowhen.when(code, "return")
