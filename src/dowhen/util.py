@@ -25,7 +25,19 @@ def get_line_numbers(
             line_numbers_sets.append({ident})
         elif isinstance(ident, str):
             if ident.startswith("+") and ident[1:].isdigit():
-                line_numbers_sets.append({code.co_firstlineno + int(ident[1:])})
+                # We need to find the actual definition of the function/class
+                # when it is decorated
+                try:
+                    lines, start_line = inspect.getsourcelines(code)
+                    for idx, line in enumerate(lines):
+                        # Skip all the decorators
+                        if not line.strip().startswith("@"):
+                            break
+                    firstlineno = start_line + idx
+                except OSError:
+                    # That's our best guess
+                    firstlineno = code.co_firstlineno
+                line_numbers_sets.append({firstlineno + int(ident[1:])})
             else:
                 try:
                     lines, start_line = inspect.getsourcelines(code)

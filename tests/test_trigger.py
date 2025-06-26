@@ -139,10 +139,26 @@ def test_decorator():
 
     @decorator
     def f(x):
+        x += 1
         return x
 
-    dowhen.when(f, "return x").do("x = 1")
-    assert f(0) == 1
+    with dowhen.when(f, "return x").do("x = 42"):
+        assert f(0) == 42
+
+    with dowhen.when(f, "+1").do("x += 1"):
+        assert f(0) == 2
+
+    with dowhen.when(f, "+2").do("x = 42"):
+        assert f(0) == 42
+
+
+def test_code_without_source():
+    src = """def f(x):\n  return x\nf(0)"""
+    code = compile(src, "<string>", "exec")
+    events = []
+    with dowhen.when(code, "+1").do(lambda: events.append(0)):
+        exec(code)
+        assert events == [0]
 
 
 def test_every_line():
