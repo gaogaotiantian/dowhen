@@ -16,16 +16,20 @@ Triggers
 
 ``when`` takes an ``entity``, optional positional ``identifiers`` and an optional keyword-only ``condition``.
 
-* ``entity`` - a function, method, code object, class or module
+* ``entity`` - a function, method, code object, class, module or ``None``
 * ``identifiers`` - something to locate a specific line or a special event
 * ``condition`` - an expression or a function to determine whether the trigger should fire
 
 Entity
 ^^^^^^
 
-You need to specify an entity to instrument. This can be a function, method, code object, class, or module.
+You need to specify an entity to instrument. This can be a function, method, code object, class, module or ``None``.
 
 If you pass a class or module, dowhen will instrument all functions and methods in that class or module.
+
+If you pass ``None``, ``dowhen`` will instrument globally, which means every code object will be instrumented.
+This will introduce an overhead at the beginning, but the unnecessary events will be disabled while the
+program is running.
 
 Identifiers
 ^^^^^^^^^^^
