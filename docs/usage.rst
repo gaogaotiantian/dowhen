@@ -70,12 +70,12 @@ Special Events
 
 Besides locating lines, you can also use special events as identifiers:
 
-* ``"<call>"`` - when the function is called
+* ``"<start>"`` - when the function is called
 * ``"<return>"`` - when the function returns
 
 .. code-block:: python
 
-   when(f, "<call>")    # triggers when f is called
+   when(f, "<start>")    # triggers when f is called
    when(f, "<return>")  # triggers when f returns
 
 Combination of Identifiers
@@ -99,7 +99,7 @@ You can also specify multiple identifiers to trigger on:
            x += i
        return x
 
-   do("print(x)").when(f, "return x", "<call>")  # triggers on both `return x` and when f is called
+   do("print(x)").when(f, "return x", "<start>")  # triggers on both `return x` and when f is called
 
 Conditions
 ^^^^^^^^^^
@@ -242,7 +242,7 @@ You can also return ``dowhen.DISABLE`` to disable the trigger.
        return x
 
    # Equivalent to setting a breakpoint at f
-   bp().when(f, "<call>")
+   bp().when(f, "<start>")
 
 ``goto``
 ~~~~~~~~
