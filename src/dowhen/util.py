@@ -21,24 +21,23 @@ def get_line_numbers(
 
     line_numbers_sets = []
 
+    try:
+        lines, start_line = inspect.getsourcelines(code)
+        # We need to find the actual definition of the function/class
+        # when it is decorated
+        while lines[0].strip().startswith("@"):
+            # If the first line is a decorator, we need to skip it
+            # and move to the next line
+            lines.pop(0)
+            start_line += 1
+    except OSError:
+        lines, start_line = [], code.co_firstlineno
+
     for ident in identifier:
         if isinstance(ident, int):
             line_numbers = {ident}
         else:
-            # We need source lines here
-            try:
-                lines, start_line = inspect.getsourcelines(code)
-            except OSError:
-                lines, start_line = [], code.co_firstlineno
-
             if isinstance(ident, str) and ident.startswith("+") and ident[1:].isdigit():
-                # We need to find the actual definition of the function/class
-                # when it is decorated
-                for line in lines:
-                    # Skip all the decorators
-                    if not line.strip().startswith("@"):
-                        break
-                    start_line += 1
                 line_numbers = {start_line + int(ident[1:])}
             elif isinstance(ident, str) or isinstance(ident, re.Pattern):
                 line_numbers = set()
