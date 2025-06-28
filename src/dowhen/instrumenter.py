@@ -16,7 +16,7 @@ DISABLE = sys.monitoring.DISABLE
 
 
 class Instrumenter:
-    _intialized: bool = False
+    _initialized: bool = False
 
     def __new__(cls, *args, **kwargs) -> Instrumenter:
         if not hasattr(cls, "_instance"):
@@ -24,7 +24,7 @@ class Instrumenter:
         return cls._instance
 
     def __init__(self, tool_id: int = 4):
-        if not self._intialized:
+        if not self._initialized:
             self.tool_id = tool_id
             self.handlers: defaultdict[CodeType | None, dict] = defaultdict(dict)
 
@@ -36,7 +36,7 @@ class Instrumenter:
             sys.monitoring.register_callback(
                 self.tool_id, E.PY_START, self.start_callback
             )
-            self._intialized = True
+            self._initialized = True
 
     def clear_all(self) -> None:
         for code in self.handlers:
