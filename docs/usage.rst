@@ -116,7 +116,7 @@ You can add conditions to triggers to make them more specific:
    def f(x):
        return x
     
-   when(f, "return x", condition="x = 0").do("x = 1")
+   when(f, "return x", condition="x == 0").do("x = 1")
    assert f(0) == 1  # x is set to 1 when x is 0
    assert f(2) == 2  # x is not modified when x is not 0
 
