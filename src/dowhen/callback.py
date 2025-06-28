@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import ctypes
 import inspect
+import re
 import sys
 import warnings
 from collections.abc import Callable
@@ -122,7 +123,7 @@ class Callback:
     def when(
         self,
         entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
-        *identifiers: str | int | tuple,
+        *identifiers: str | int | re.Pattern | tuple,
         condition: str | Callable[..., bool | Any] | None = None,
         source_hash: str | None = None,
     ) -> "EventHandler":
