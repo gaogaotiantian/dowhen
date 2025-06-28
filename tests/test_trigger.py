@@ -349,3 +349,17 @@ def test_invalid_line_number():
     code = compile("pass", "<string>", "exec")
     with pytest.raises(ValueError):
         dowhen.when(code, "return")
+
+
+def test_with_comment():
+    def f():
+        x = 1
+        # This is a comment
+        return x
+        # Another comment
+
+    dowhen.when(f, "# This is a comment").do("x = 2")
+    assert f() == 2
+
+    with pytest.raises(ValueError):
+        dowhen.when(f, "# Another comment").do("x = 3")
