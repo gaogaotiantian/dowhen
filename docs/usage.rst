@@ -38,7 +38,9 @@ Line
 """"
 
 To locate a line, you can use the absolute line number, a string starting with ``+`` as
-the relative line number, or the prefix of the line.
+the relative line number, the prefix of the line or a regex pattern.
+
+Notice that the indentation of the line is stripped before matching.
 
 .. code-block:: python
 
@@ -52,6 +54,7 @@ the relative line number, or the prefix of the line.
    when(f, "+1")  # relative to function start
    when(f, "return x")  # exact match of the line content
    when(f, "ret")  # prefix of the line
+   when(f, re.compile(r"return.*"))  # regex
 
 If an identifier matches multiple lines, the callback will trigger on all of them.
 

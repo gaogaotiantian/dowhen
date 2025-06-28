@@ -4,6 +4,7 @@
 
 import functools
 import sys
+import re
 
 import pytest
 
@@ -17,7 +18,7 @@ def test_event_line_number():
     target_line_number = f.__code__.co_firstlineno + 1
 
     for entity in (f, f.__code__):
-        for identifier in [target_line_number, "+1", "pass", ("+1", "pass")]:
+        for identifier in [target_line_number, "+1", "pass", ("+1", "pass"), re.compile(r"pass")]:
             trigger = dowhen.when(entity, identifier)
             assert trigger.events[0].event_type == "line"
             assert trigger.events[0].event_data["line_number"] == target_line_number
