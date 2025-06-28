@@ -74,8 +74,8 @@ class EventHandler:
         self.callbacks.append(Callback.do(func))
         return self
 
-    def goto(self, target: str | int) -> "EventHandler":
+    def goto(self, target: str | int, offset: int = 0) -> "EventHandler":
         from .callback import Callback
 
-        self.callbacks.append(Callback.goto(target))
+        self.callbacks.append(Callback.goto(target, offset))
         return self
