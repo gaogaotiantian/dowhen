@@ -11,6 +11,8 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import Any
 
+ident_with_offset = re.compile(r"(.+)(<<|>>)(\d+)$")
+
 
 @functools.lru_cache(maxsize=256)
 def get_line_numbers(
@@ -36,21 +38,29 @@ def get_line_numbers(
     for ident in identifier:
         if isinstance(ident, int):
             line_numbers = {ident}
-        else:
-            if isinstance(ident, str) and ident.startswith("+") and ident[1:].isdigit():
+        elif isinstance(ident, str):
+            if ident.startswith("+") and ident[1:].isdigit():
                 line_numbers = {start_line + int(ident[1:])}
-            elif isinstance(ident, str) or isinstance(ident, re.Pattern):
-                line_numbers = set()
-                for i, line in enumerate(lines):
-                    line = line.strip()
-                    if (isinstance(ident, str) and line.startswith(ident)) or (
-                        isinstance(ident, re.Pattern) and ident.match(line)
-                    ):
-                        line_number = start_line + i
-                        line_numbers.add(line_number)
             else:
-                raise TypeError(f"Unknown identifier type: {type(ident)}")
-
+                if _m := ident_with_offset.match(ident):
+                    _ident, _sign, _offset = _m.groups()
+                    _offset = int(_offset) * int(_sign == ">>")
+                else:
+                    _ident = ident
+                    _offset = 0
+                line_numbers = {
+                    start_line + i + _offset
+                    for i, line in enumerate(lines)
+                    if line.strip().startswith(_ident)
+                }
+        elif isinstance(ident, re.Pattern):
+            line_numbers = {
+                start_line + i
+                for i, line in enumerate(lines)
+                if ident.match(line.strip())
+            }
+        else:
+            raise TypeError(f"Unknown identifier type: {type(ident)}")
         if not line_numbers:
             return None
         line_numbers_sets.append(line_numbers)
