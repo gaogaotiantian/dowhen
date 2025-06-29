@@ -204,7 +204,7 @@ will be automatically passed to the function.
 
 Special arguments:
 
-* :py:data:`_frame <types.FrameType>` - when used, the current frame object is passed.
+* ``_frame`` - when used, the current `frame object <https://docs.python.org/3/reference/datamodel.html#frame-objects>`_, whose type is `types.FrameType <https://docs.python.org/3/library/types.html#types.FrameType>`_, is passed.
 * ``_retval`` - when used, the return value of the function is passed. Only valid for ``<return>`` triggers.
 
 If you want to change the value of the local variables, you need to return a dictionary
