@@ -14,8 +14,9 @@ from typing import Any
 
 @functools.lru_cache(maxsize=256)
 def get_line_numbers(
-    code: CodeType, identifier: int | str | re.Pattern | tuple,
-    base_start_line: int | None = None
+    code: CodeType,
+    identifier: int | str | re.Pattern | tuple,
+    base_start_line: int | None = None,
 ) -> list[int] | None:
     if not isinstance(identifier, tuple):
         identifier = (identifier,)
@@ -43,7 +44,9 @@ def get_line_numbers(
             if isinstance(ident, str) and ident.startswith("+") and ident[1:].isdigit():
                 relative_offset = int(ident[1:])
                 # Use base_start_line if provided, otherwise use current code's start_line
-                reference_start_line = base_start_line if base_start_line is not None else start_line
+                reference_start_line = (
+                    base_start_line if base_start_line is not None else start_line
+                )
                 target_line = reference_start_line + relative_offset
                 if target_line in code_line_numbers:
                     line_numbers = {target_line}

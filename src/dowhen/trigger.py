@@ -139,31 +139,51 @@ class Trigger:
                 elif identifier == "<return>":
                     for code in direct_code_objects:
                         events.append(_Event(code, "return", None))
-                elif isinstance(identifier, str) and identifier.startswith("+") and identifier[1:].isdigit():
+                elif (
+                    isinstance(identifier, str)
+                    and identifier.startswith("+")
+                    and identifier[1:].isdigit()
+                ):
                     # For relative identifiers, calculate base start line from main function
                     main_code = direct_code_objects[0] if direct_code_objects else None
                     if main_code is not None:
                         base_start_line = get_base_start_line(main_code)
-                        
+
                         # Try direct_code_objects first
                         found = False
                         for code in direct_code_objects:
                             if code is not None:
-                                line_numbers = get_line_numbers(code, identifier, base_start_line)
+                                line_numbers = get_line_numbers(
+                                    code, identifier, base_start_line
+                                )
                                 if line_numbers:
                                     for line_number in line_numbers:
-                                        events.append(_Event(code, "line", {"line_number": line_number}))
+                                        events.append(
+                                            _Event(
+                                                code,
+                                                "line",
+                                                {"line_number": line_number},
+                                            )
+                                        )
                                     found = True
                                     break
-                        
+
                         # Fallback: if only one direct_code_object and not found, try all_code_objects
                         if not found and len(direct_code_objects) == 1:
                             for code in all_code_objects:
                                 if code is not None:
-                                    line_numbers = get_line_numbers(code, identifier, base_start_line)
+                                    line_numbers = get_line_numbers(
+                                        code, identifier, base_start_line
+                                    )
                                     if line_numbers:
                                         for line_number in line_numbers:
-                                            events.append(_Event(code, "line", {"line_number": line_number}))
+                                            events.append(
+                                                _Event(
+                                                    code,
+                                                    "line",
+                                                    {"line_number": line_number},
+                                                )
+                                            )
                                         break
                 else:
                     for code in all_code_objects:
