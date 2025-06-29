@@ -14,7 +14,8 @@ from typing import Any
 
 @functools.lru_cache(maxsize=256)
 def get_line_numbers(
-    code: CodeType, identifier: int | str | re.Pattern | tuple
+    code: CodeType, identifier: int | str | re.Pattern | tuple,
+    base_start_line: int | None = None
 ) -> list[int] | None:
     if not isinstance(identifier, tuple):
         identifier = (identifier,)
@@ -41,7 +42,9 @@ def get_line_numbers(
         else:
             if isinstance(ident, str) and ident.startswith("+") and ident[1:].isdigit():
                 relative_offset = int(ident[1:])
-                target_line = start_line + relative_offset
+                # Use base_start_line if provided, otherwise use current code's start_line
+                reference_start_line = base_start_line if base_start_line is not None else start_line
+                target_line = reference_start_line + relative_offset
                 if target_line in code_line_numbers:
                     line_numbers = {target_line}
                 else:
@@ -76,6 +79,19 @@ def get_line_numbers(
 
 
 @functools.lru_cache(maxsize=256)
+def get_base_start_line(code: CodeType) -> int:
+    """Get the base start line number for a code object, handling decorators."""
+    try:
+        lines, start_line = inspect.getsourcelines(code)
+        while lines and lines[0].strip().startswith("@"):
+            lines.pop(0)
+            start_line += 1
+        return start_line
+    except OSError:
+        return code.co_firstlineno
+
+
+@functools.lru_cache(maxsize=256)
 def get_func_args(func: Callable) -> list[str]:
     return inspect.getfullargspec(func).args
 
@@ -103,53 +119,3 @@ def get_source_hash(entity: CodeType | FunctionType | MethodType | ModuleType | 
 
     source = inspect.getsource(entity)
     return hashlib.md5(source.encode("utf-8")).hexdigest()[-8:]
-
-
-def get_line_numbers_from_codes(
-    codes: list[CodeType],
-    identifier: int | str | re.Pattern | tuple,
-    base_code: CodeType | None = None,
-) -> tuple[CodeType | None, list[int]] | None:
-    """
-    Get line numbers from a list of code objects, with optional fallback logic.
-
-    For relative identifiers (e.g., "+1"), uses base_code's start line as reference.
-    Returns (matched_code, line_numbers) tuple, or None if no match found.
-    """
-    if not codes:
-        return None
-
-    # Handle relative identifiers with base_code reference
-    if (
-        isinstance(identifier, str)
-        and identifier.startswith("+")
-        and identifier[1:].isdigit()
-        and base_code is not None
-    ):
-        # Calculate target line based on base_code's start line
-        relative_offset = int(identifier[1:])
-        try:
-            lines, start_line = inspect.getsourcelines(base_code)
-            while lines and lines[0].strip().startswith("@"):
-                lines.pop(0)
-                start_line += 1
-        except OSError:
-            start_line = base_code.co_firstlineno
-        target_line = start_line + relative_offset
-
-        # Try to find target_line in the provided codes
-        for code in codes:
-            if code is not None:
-                line_numbers = get_line_numbers(code, target_line)
-                if line_numbers:
-                    return (code, line_numbers)
-        return None
-    else:
-        # For non-relative identifiers, try each code object
-        for code in codes:
-            if code is None:
-                continue
-            line_numbers = get_line_numbers(code, identifier)
-            if line_numbers:
-                return (code, line_numbers)
-        return None
