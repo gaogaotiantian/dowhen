@@ -10,7 +10,7 @@ When do we need this?
 
 ``dowhen`` allows you to inject code at specific points in your application
 without modifying the original codebase. When you need to change the behavior
-of stdlib or third-party libraries, you can use `dowhen` to do it to
+of stdlib or third-party libraries, you can use ``dowhen`` to do it to
 avoid vendoring your own version or swapping the whole function.
 
 2. **debugging**:
@@ -34,4 +34,4 @@ events when necessary. It has minimal impacts on performance.
 Why 3.12+?
 ----------
 
-``dowhen`` uses the new `sys.monitoring` module introduced in Python 3.12,
+``dowhen`` uses the new ``sys.monitoring`` module introduced in Python 3.12.

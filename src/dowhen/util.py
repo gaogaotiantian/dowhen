@@ -69,7 +69,7 @@ def get_line_numbers(
 
 @functools.lru_cache(maxsize=256)
 def get_func_args(func: Callable) -> list[str]:
-    return inspect.getfullargspec(func).args
+    return inspect.getfullargspec(inspect.unwrap(func)).args
 
 
 def call_in_frame(func: Callable, frame: FrameType, **kwargs) -> Any:
