@@ -191,7 +191,7 @@ def test_code_without_source():
     src = """def f(x):\n  return x\nf(0)"""
     code = compile(src, "<string>", "exec")
     events = []
-    with dowhen.when(code, "+1").do(lambda: events.append(0)):
+    with dowhen.when(code, "+2").do(lambda: events.append(0)):
         exec(code)
         assert events == [0]
 
