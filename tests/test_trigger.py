@@ -158,6 +158,21 @@ def test_decorator():
     with dowhen.when(f, "+2").do("x = 42"):
         assert f(0) == 42
 
+    @decorator
+    def cond(x):
+        return x > 1
+
+    with dowhen.when(f, "return x", condition=cond).do("x = 42"):
+        assert f(0) == 1
+        assert f(1) == 42
+
+    @decorator
+    def cb(x):
+        return {"x": 42}
+
+    with dowhen.when(f, "return x").do(cb):
+        assert f(0) == 42
+
 
 def test_code_without_source():
     src = """def f(x):\n  return x\nf(0)"""
