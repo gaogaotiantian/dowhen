@@ -97,6 +97,33 @@ def test_closure():
     assert f(2) == 1
 
 
+def test_closure_with_relative_line_trigger():
+    def f(events):
+        events = []
+
+        def g(e):
+            e.append(0)
+
+        g(events)
+
+    def f_callback(_frame):
+        events.append(0)
+
+    events = []
+    with dowhen.when(f, "+1").do(f_callback):
+        f(events)
+        assert events == [0]
+
+
+def test_closure_with_nested_function():
+    def f(x):
+        def g(y):
+            return y
+        return g
+
+    dowhen.do("y = 1").when(f, "+2")
+
+
 def test_method():
     class A:
         def f(self, x):

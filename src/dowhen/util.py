@@ -33,12 +33,19 @@ def get_line_numbers(
     except OSError:
         lines, start_line = [], code.co_firstlineno
 
+    code_line_numbers = set(line[2] for line in code.co_lines())
+
     for ident in identifier:
         if isinstance(ident, int):
             line_numbers = {ident}
         else:
             if isinstance(ident, str) and ident.startswith("+") and ident[1:].isdigit():
-                line_numbers = {start_line + int(ident[1:])}
+                relative_offset = int(ident[1:])
+                target_line = start_line + relative_offset
+                if target_line in code_line_numbers:
+                    line_numbers = {target_line}
+                else:
+                    return None
             elif isinstance(ident, str) or isinstance(ident, re.Pattern):
                 line_numbers = set()
                 for i, line in enumerate(lines):
@@ -56,10 +63,11 @@ def get_line_numbers(
         line_numbers_sets.append(line_numbers)
 
     agreed_line_numbers = set.intersection(*line_numbers_sets)
+    # Filter out line numbers that are not in the code object
     agreed_line_numbers = {
         line_number
         for line_number in agreed_line_numbers
-        if line_number in (line[2] for line in code.co_lines())
+        if line_number in code_line_numbers
     }
     if not agreed_line_numbers:
         return None
@@ -95,3 +103,53 @@ def get_source_hash(entity: CodeType | FunctionType | MethodType | ModuleType | 
 
     source = inspect.getsource(entity)
     return hashlib.md5(source.encode("utf-8")).hexdigest()[-8:]
+
+
+def get_line_numbers_from_codes(
+    codes: list[CodeType],
+    identifier: int | str | re.Pattern | tuple,
+    base_code: CodeType | None = None,
+) -> tuple[CodeType | None, list[int]] | None:
+    """
+    Get line numbers from a list of code objects, with optional fallback logic.
+
+    For relative identifiers (e.g., "+1"), uses base_code's start line as reference.
+    Returns (matched_code, line_numbers) tuple, or None if no match found.
+    """
+    if not codes:
+        return None
+
+    # Handle relative identifiers with base_code reference
+    if (
+        isinstance(identifier, str)
+        and identifier.startswith("+")
+        and identifier[1:].isdigit()
+        and base_code is not None
+    ):
+        # Calculate target line based on base_code's start line
+        relative_offset = int(identifier[1:])
+        try:
+            lines, start_line = inspect.getsourcelines(base_code)
+            while lines and lines[0].strip().startswith("@"):
+                lines.pop(0)
+                start_line += 1
+        except OSError:
+            start_line = base_code.co_firstlineno
+        target_line = start_line + relative_offset
+
+        # Try to find target_line in the provided codes
+        for code in codes:
+            if code is not None:
+                line_numbers = get_line_numbers(code, target_line)
+                if line_numbers:
+                    return (code, line_numbers)
+        return None
+    else:
+        # For non-relative identifiers, try each code object
+        for code in codes:
+            if code is None:
+                continue
+            line_numbers = get_line_numbers(code, identifier)
+            if line_numbers:
+                return (code, line_numbers)
+        return None
