@@ -266,6 +266,18 @@ def test_global_events():
     assert events == [0, 0, 0]
 
 
+def test_global_events_with_relative_line_trigger():
+    def f_callback():
+        events.append(0)
+
+    events = []
+    with dowhen.when(None, "+1").do(f_callback):
+        ...
+    assert len(events) > 0
+    # Because this is a global event, it will trigger for every built-in function call
+    # and every line of code executed, so we cannot assert the exact number of events.
+
+
 def test_goto():
     def f():
         x = 0
