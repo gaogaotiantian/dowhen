@@ -8,7 +8,7 @@ When do we need this?
 
 1. **monkeypatching**:
 
-``down`` allows you to inject code at specific points in your application
+``dowhen`` allows you to inject code at specific points in your application
 without modifying the original codebase. When you need to change the behavior
 of stdlib or third-party libraries, you can use `dowhen` to do it to
 avoid vendoring your own version or swapping the whole function.

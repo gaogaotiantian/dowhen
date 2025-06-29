@@ -65,7 +65,7 @@ def test_callback_writeback():
     def change_wrong(x):
         return {"y": 1}
 
-    def change_wrong_tyoe(x):
+    def change_wrong_type(x):
         return [1]
 
     frame = sys._getframe()
@@ -82,7 +82,7 @@ def test_callback_writeback():
         callback_wrong(frame)
 
     with pytest.raises(TypeError):
-        callback_wrong_type = dowhen.do(change_wrong_tyoe)
+        callback_wrong_type = dowhen.do(change_wrong_type)
         callback_wrong_type(frame)
 
     callback = dowhen.do(change)
@@ -142,7 +142,7 @@ def test_callback_invalid_type():
     def change_wrong(x):
         return {"y": 1}
 
-    def change_wrong_tyoe(x):
+    def change_wrong_type(x):
         return [1]
 
     with pytest.raises(TypeError):
@@ -154,7 +154,7 @@ def test_callback_invalid_type():
         f(0)
 
     with pytest.raises(TypeError):
-        dowhen.do(change_wrong_tyoe).when(f, "return x")
+        dowhen.do(change_wrong_type).when(f, "return x")
         f(0)
 
 
