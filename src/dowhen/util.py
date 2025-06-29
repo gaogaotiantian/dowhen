@@ -18,40 +18,26 @@ def get_line_numbers(
     identifier: int | str | re.Pattern | tuple,
     base_start_line: int | None = None,
 ) -> list[int] | None:
+    """
+    Get the line numbers of a code object based on the identifier.
+    If the identifier is a string starting with "+", it will be treated as an offset
+    from the base start line (or the code's start line if not provided).
+    """
     if not isinstance(identifier, tuple):
         identifier = (identifier,)
 
     line_numbers_sets = []
 
-    try:
-        lines, start_line = inspect.getsourcelines(code)
-        # We need to find the actual definition of the function/class
-        # when it is decorated
-        while lines[0].strip().startswith("@"):
-            # If the first line is a decorator, we need to skip it
-            # and move to the next line
-            lines.pop(0)
-            start_line += 1
-    except OSError:
-        lines, start_line = [], code.co_firstlineno
-
-    code_line_numbers = set(line[2] for line in code.co_lines())
+    lines, start_line = getsourcelines_unbiased(code)
 
     for ident in identifier:
         if isinstance(ident, int):
             line_numbers = {ident}
         else:
             if isinstance(ident, str) and ident.startswith("+") and ident[1:].isdigit():
-                relative_offset = int(ident[1:])
                 # Use base_start_line if provided, otherwise use current code's start_line
-                reference_start_line = (
-                    base_start_line if base_start_line is not None else start_line
-                )
-                target_line = reference_start_line + relative_offset
-                if target_line in code_line_numbers:
-                    line_numbers = {target_line}
-                else:
-                    return None
+                target_line = (base_start_line or start_line) + int(ident[1:])
+                line_numbers = {target_line}
             elif isinstance(ident, str) or isinstance(ident, re.Pattern):
                 line_numbers = set()
                 for i, line in enumerate(lines):
@@ -69,11 +55,10 @@ def get_line_numbers(
         line_numbers_sets.append(line_numbers)
 
     agreed_line_numbers = set.intersection(*line_numbers_sets)
-    # Filter out line numbers that are not in the code object
     agreed_line_numbers = {
         line_number
         for line_number in agreed_line_numbers
-        if line_number in code_line_numbers
+        if line_number in (line[2] for line in code.co_lines())
     }
     if not agreed_line_numbers:
         return None
@@ -82,16 +67,23 @@ def get_line_numbers(
 
 
 @functools.lru_cache(maxsize=256)
-def get_base_start_line(code: CodeType) -> int:
-    """Get the base start line number for a code object, handling decorators."""
+def getsourcelines_unbiased(code: CodeType) -> tuple[list[str], int]:
+    """
+    Get the source lines of a code object, unbiased by decorators.
+    """
     try:
         lines, start_line = inspect.getsourcelines(code)
-        while lines and lines[0].strip().startswith("@"):
+        # We need to find the actual definition of the function/class
+        # when it is decorated
+        while lines[0].strip().startswith("@"):
+            # If the first line is a decorator, we need to skip it
+            # and move to the next line
             lines.pop(0)
             start_line += 1
-        return start_line
     except OSError:
-        return code.co_firstlineno
+        lines, start_line = [], code.co_firstlineno
+
+    return lines, start_line
 
 
 @functools.lru_cache(maxsize=256)

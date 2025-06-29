@@ -11,7 +11,7 @@ from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any, Literal
 
-from .util import call_in_frame, get_base_start_line, get_line_numbers, get_source_hash
+from .util import call_in_frame, getsourcelines_unbiased, get_line_numbers, get_source_hash
 
 if TYPE_CHECKING:  # pragma: no cover
     from .callback import Callback
@@ -144,14 +144,31 @@ class Trigger:
                     and identifier.startswith("+")
                     and identifier[1:].isdigit()
                 ):
-                    # For relative identifiers, calculate base start line from main function
-                    main_code = direct_code_objects[0] if direct_code_objects else None
-                    if main_code is not None:
-                        base_start_line = get_base_start_line(main_code)
+                    # Try direct_code_objects first
+                    found = False
+                    for code in direct_code_objects:
+                        if code is not None:
+                            line_numbers = get_line_numbers(
+                                code, identifier
+                            )
+                            if line_numbers:
+                                for line_number in line_numbers:
+                                    events.append(
+                                        _Event(
+                                            code,
+                                            "line",
+                                            {"line_number": line_number},
+                                        )
+                                    )
+                                found = True
+                                break
 
-                        # Try direct_code_objects first
-                        found = False
-                        for code in direct_code_objects:
+                    # Fallback: if not found, try all_code_objects
+                    # Calculate base start line from main function
+                    main_code = direct_code_objects[0] if direct_code_objects else None
+                    _, base_start_line = getsourcelines_unbiased(main_code)
+                    if not found:
+                        for code in all_code_objects:
                             if code is not None:
                                 line_numbers = get_line_numbers(
                                     code, identifier, base_start_line
@@ -165,26 +182,7 @@ class Trigger:
                                                 {"line_number": line_number},
                                             )
                                         )
-                                    found = True
                                     break
-
-                        # Fallback: if only one direct_code_object and not found, try all_code_objects
-                        if not found and len(direct_code_objects) == 1:
-                            for code in all_code_objects:
-                                if code is not None:
-                                    line_numbers = get_line_numbers(
-                                        code, identifier, base_start_line
-                                    )
-                                    if line_numbers:
-                                        for line_number in line_numbers:
-                                            events.append(
-                                                _Event(
-                                                    code,
-                                                    "line",
-                                                    {"line_number": line_number},
-                                                )
-                                            )
-                                        break
                 else:
                     for code in all_code_objects:
                         if code is None:
