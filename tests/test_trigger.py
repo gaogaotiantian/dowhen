@@ -119,6 +119,7 @@ def test_closure_with_nested_function():
     def f(x):
         def g(y):
             return y
+
         return g
 
     dowhen.do("y = 1").when(f, "+2")
