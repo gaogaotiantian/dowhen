@@ -7,6 +7,7 @@ from __future__ import annotations
 import functools
 import inspect
 import re
+import warnings
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import Any
@@ -56,15 +57,42 @@ def get_line_numbers(
         line_numbers_sets.append(line_numbers)
 
     agreed_line_numbers = set.intersection(*line_numbers_sets)
-    agreed_line_numbers = {
-        line_number
-        for line_number in agreed_line_numbers
-        if line_number in (line[2] for line in code.co_lines())
-    }
-    if not agreed_line_numbers:
+    if lines:
+        in_scope_line_numbers = agreed_line_numbers & set(
+            range(start_line, start_line + len(lines))
+        )
+    else:
+        in_scope_line_numbers = agreed_line_numbers
+
+    executable_lines = {line[2] for line in code.co_lines() if line[2] is not None}
+
+    valid_line_numbers = set()
+    for line_number in in_scope_line_numbers:
+        if line_number in executable_lines:
+            valid_line_numbers.add(line_number)
+            continue
+
+        fallback_ln = min(
+            (e_ln for e_ln in executable_lines if e_ln > line_number), default=None
+        )
+
+        if fallback_ln is None:
+            raise ValueError(
+                f"Line {line_number} in {code.co_filename} is not executable "
+                "and no fallback line was found."
+            )
+        valid_line_numbers.add(fallback_ln)
+        warnings.warn(
+            f"Line {line_number} in {code.co_filename} is not executable. "
+            f"Falling back to next executable line {fallback_ln}.",
+            UserWarning,
+            stacklevel=3,
+        )
+
+    if not valid_line_numbers:
         return None
 
-    return sorted(agreed_line_numbers)
+    return sorted(valid_line_numbers)
 
 
 @functools.lru_cache(maxsize=256)
