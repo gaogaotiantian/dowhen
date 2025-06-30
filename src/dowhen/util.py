@@ -72,7 +72,7 @@ def get_func_args(func: Callable) -> list[str]:
     args = inspect.getfullargspec(inspect.unwrap(func)).args
     # For bound methods, skip the first argument since it's already bound
     if inspect.ismethod(func) and args and args[0] in ("self", "cls"):
-        return args[1:]
+        return args[1:]  # pragma: no cover
     else:
         return args
 
