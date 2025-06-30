@@ -88,7 +88,7 @@ class Callback:
             raise ValueError(
                 f"Multiple line numbers found for target '{target}': {line_numbers}"
             )
-        line_number = line_numbers[0]
+        line_number = line_numbers[0] + self.kwargs["offset"]
         with warnings.catch_warnings():
             # This gives a RuntimeWarning in Python 3.12
             warnings.simplefilter("ignore", RuntimeWarning)
@@ -100,8 +100,8 @@ class Callback:
         return cls(func)
 
     @classmethod
-    def goto(cls, target: str | int) -> Callback:
-        return cls("goto", target=target)
+    def goto(cls, target: str | int, offset: int = 0) -> Callback:
+        return cls("goto", target=target, offset=offset)
 
     @classmethod
     def bp(cls) -> Callback:
