@@ -67,6 +67,7 @@ def test_callback_call():
     callback(frame)
     assert x == 1
 
+
 def test_method_callback_call():
     class A:
         def change(self, x):
@@ -77,6 +78,7 @@ def test_method_callback_call():
     frame = sys._getframe()
     callback(frame)
     assert x == 1
+
 
 def test_callback_writeback():
     x = 0
