@@ -105,7 +105,7 @@ class Instrumenter:
             sys.monitoring.set_local_events(self.tool_id, code, events | E.PY_START)
         sys.monitoring.restart_events()
 
-    def start_callback(self, code: CodeType, offset):  # pragma: no cover
+    def start_callback(self, code: CodeType, offset: int):  # pragma: no cover
         handlers = []
         if None in self.handlers:
             handlers.extend(self.handlers[None].get("start", []))
@@ -128,7 +128,9 @@ class Instrumenter:
             sys.monitoring.set_local_events(self.tool_id, code, events | E.PY_RETURN)
         sys.monitoring.restart_events()
 
-    def return_callback(self, code: CodeType, offset, retval):  # pragma: no cover
+    def return_callback(
+        self, code: CodeType, offset: int, retval: object
+    ):  # pragma: no cover
         handlers = []
         if None in self.handlers:
             handlers.extend(self.handlers[None].get("return", []))

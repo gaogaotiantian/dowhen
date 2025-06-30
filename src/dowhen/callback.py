@@ -35,7 +35,7 @@ class Callback:
         self.func = func
         self.kwargs = kwargs
 
-    def __call__(self, frame, **kwargs) -> Any:
+    def __call__(self, frame: FrameType, **kwargs) -> Any:
         ret = None
         if isinstance(self.func, str):
             if self.func == "goto":  # pragma: no cover
