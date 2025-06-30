@@ -69,7 +69,12 @@ def get_line_numbers(
 
 @functools.lru_cache(maxsize=256)
 def get_func_args(func: Callable) -> list[str]:
-    return inspect.getfullargspec(inspect.unwrap(func)).args
+    args = inspect.getfullargspec(inspect.unwrap(func)).args
+    # For bound methods, skip the first argument since it's already bound
+    if inspect.ismethod(func) and args and args[0] in ('self', 'cls'):
+        return args[1:]
+    else:
+        return args
 
 
 def call_in_frame(func: Callable, frame: FrameType, **kwargs) -> Any:

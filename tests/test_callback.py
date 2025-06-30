@@ -43,6 +43,7 @@ def test_do_when_with_method():
             return {"x": 1}
 
     dowhen.do(A().change).when(f, "return x")
+    assert f(2) == 1
 
 
 def test_callback_call():
