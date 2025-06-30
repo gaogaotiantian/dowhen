@@ -71,7 +71,7 @@ def get_line_numbers(
 def get_func_args(func: Callable) -> list[str]:
     args = inspect.getfullargspec(inspect.unwrap(func)).args
     # For bound methods, skip the first argument since it's already bound
-    if inspect.ismethod(func) and args and args[0] in ("self", "cls"):
+    if inspect.ismethod(func):
         return args[1:]  # pragma: no cover
     else:
         return args
