@@ -28,8 +28,8 @@ code to your application.
 Is the overhead high?
 ----------------------
 
-Not at all. ``dowhen`` utilities ``sys.monitoring`` so it only triggers
-events when necessary. It has minimal impacts on performance.
+Not at all. ``dowhen`` utilizes ``sys.monitoring`` so it only triggers
+events when necessary. It has minimal impact on performance.
 
 Why 3.12+?
 ----------

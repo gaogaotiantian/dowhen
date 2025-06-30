@@ -133,8 +133,6 @@ You can also use a function as a condition:
        return x == 0
 
    when(f, "return x", condition=check).do("x = 1")
-    
-   when(f, "return x", condition=check).do("x = 1")
    assert f(0) == 1  # x is set to 1 when x is 0
    assert f(2) == 2  # x is not modified when x is not 0
 
@@ -152,8 +150,6 @@ If the condition function returns ``dowhen.DISABLE``, the trigger will not fire 
            return True
        return DISABLE
 
-   when(f, "return x", condition=check).do("x = 1")
-    
    when(f, "return x", condition=check).do("x = 1")
    assert f(0) == 1  # x is set to 1 when x is 0
    assert f(2) == 2  # x is not modified and the trigger is disabled
@@ -179,7 +175,7 @@ you can use the ``source_hash`` argument.
 
 ``source_hash`` is not a security feature. It is just a sanity check to ensure
 that the source code of the function has not changed so your instrumentation
-is still valid. It's just the a piece of md5 has of the source code of the function.
+is still valid. It's just a piece of the md5 hash of the source code of the function.
 
 Callbacks
 ---------
