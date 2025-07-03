@@ -5,13 +5,13 @@
 from __future__ import annotations
 
 import inspect
-import re
 import sys
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any, Literal
 
-from .util import call_in_frame, get_line_numbers, get_source_hash
+from .types import IdentifierType
+from .util import call_in_frame, get_line_numbers, get_source_hash, getrealsourcelines
 
 if TYPE_CHECKING:  # pragma: no cover
     from .callback import Callback
@@ -47,17 +47,16 @@ class Trigger:
     @classmethod
     def _get_code_from_entity(
         cls, entity: CodeType | FunctionType | MethodType | ModuleType | type | None
-    ) -> tuple[list[CodeType] | list[None], list[CodeType] | list[None]]:
+    ) -> list[CodeType] | list[None]:
         """
-        Get the direct code objects and the internal code objects from the given entity.
+        Get code objects from the given entity.
         """
-        direct_code_objects: list[CodeType] = []
-        all_code_objects: list[CodeType] = []
+        code_objects: list[CodeType] = []
 
         entity_list = []
 
         if entity is None:
-            return [None], [None]
+            return [None]
 
         if inspect.ismodule(entity) or inspect.isclass(entity):
             for _, obj in inspect.getmembers_static(
@@ -71,34 +70,62 @@ class Trigger:
             if inspect.isfunction(entity) or inspect.ismethod(entity):
                 entity = inspect.unwrap(entity)
                 if inspect.isfunction(entity) or inspect.ismethod(entity):
-                    direct_code_objects.append(entity.__code__)
+                    code_objects.append(entity.__code__)
                 else:  # pragma: no cover
                     raise TypeError(
                         f"Expected a function or method, got {type(entity)}"
                     )
             elif inspect.iscode(entity):
-                direct_code_objects.append(entity)
+                code_objects.append(entity)
             else:
                 raise TypeError(f"Unknown entity type: {type(entity)}")
 
-        for code in direct_code_objects:
-            stack = [code]
-            while stack:
-                current_code = stack.pop()
-                assert isinstance(current_code, CodeType)
+        return code_objects
 
-                all_code_objects.append(current_code)
-                for const in current_code.co_consts:
-                    if isinstance(const, CodeType):
-                        stack.append(const)
+    @classmethod
+    def unify_identifiers(
+        cls,
+        entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
+        *identifiers: IdentifierType | tuple[IdentifierType, ...],
+    ) -> tuple[IdentifierType | tuple[IdentifierType, ...], ...]:
+        """Unify identifiers by resolving relative line numbers."""
 
-        return direct_code_objects, all_code_objects
+        def unify_identifier(
+            entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
+            identifier: IdentifierType,
+        ) -> IdentifierType:
+            if (
+                isinstance(identifier, str)
+                and identifier.startswith("+")
+                and identifier[1:].isdigit()
+            ):
+                if entity is None:
+                    raise ValueError(
+                        "Cannot use relative line numbers with a None entity."
+                    )
+                elif isinstance(entity, ModuleType):
+                    return int(identifier)
+                else:
+                    _, start_line = getrealsourcelines(entity)
+                    return start_line + int(identifier)
+            return identifier
+
+        unified_identifiers: list[IdentifierType | tuple[IdentifierType, ...]] = []
+        for identifier in identifiers:
+            if isinstance(identifier, tuple):
+                unified_identifiers.append(
+                    tuple(unify_identifier(entity, ident) for ident in identifier)
+                )
+            else:
+                unified_identifiers.append(unify_identifier(entity, identifier))
+
+        return tuple(unified_identifiers)
 
     @classmethod
     def when(
         cls,
         entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
-        *identifiers: str | int | re.Pattern | tuple,
+        *identifiers: IdentifierType | tuple[IdentifierType, ...],
         condition: str | Callable[..., bool | Any] | None = None,
         source_hash: str | None = None,
     ):
@@ -126,22 +153,24 @@ class Trigger:
 
         events = []
 
-        direct_code_objects, all_code_objects = cls._get_code_from_entity(entity)
+        code_objects = cls._get_code_from_entity(entity)
 
         if not identifiers:
-            for code in direct_code_objects:
+            for code in code_objects:
                 events.append(_Event(code, "line", {"line_number": None}))
         else:
+            identifiers = cls.unify_identifiers(entity, *identifiers)
             for identifier in identifiers:
                 if identifier == "<start>":
-                    for code in direct_code_objects:
+                    for code in code_objects:
                         events.append(_Event(code, "start", None))
                 elif identifier == "<return>":
-                    for code in direct_code_objects:
+                    for code in code_objects:
                         events.append(_Event(code, "return", None))
                 else:
-                    for code in all_code_objects:
+                    for code in code_objects:
                         if code is None:
+                            # Global event, entity is None
                             events.append(
                                 _Event(
                                     None,
@@ -151,12 +180,10 @@ class Trigger:
                             )
                         else:
                             line_numbers = get_line_numbers(code, identifier)
-                            if line_numbers is not None:
-                                for line_number in line_numbers:
+                            for c, numbers in line_numbers.items():
+                                for number in numbers:
                                     events.append(
-                                        _Event(
-                                            code, "line", {"line_number": line_number}
-                                        )
+                                        _Event(c, "line", {"line_number": number})
                                     )
 
         if not events:
@@ -185,7 +212,9 @@ class Trigger:
         if self.is_global and self.events[0].event_type == "line":
             identifier = self.events[0].event_data.get("identifier")
             assert isinstance(identifier, (str, int, tuple))
-            line_numbers = get_line_numbers(frame.f_code, identifier)
+            line_numbers = get_line_numbers(frame.f_code, identifier).get(
+                frame.f_code, None
+            )
             if line_numbers is None:
                 return False
             elif frame.f_lineno not in line_numbers:

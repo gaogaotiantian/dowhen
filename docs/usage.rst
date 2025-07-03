@@ -260,6 +260,10 @@ You can also return ``dowhen.DISABLE`` to disable the trigger.
    goto("return x").when(f, "x = 1")
    assert f(0) == 0
 
+You can pass an absolute line number or a source line to ``goto``, similar to ``identifier``
+in ``when``. ``goto`` also takes a relative line number, but it is relative to the *executing line*.
+Therefore, it can take both ``+<line_number>`` and ``-<line_number>``.
+
 Handlers
 --------
 

@@ -117,9 +117,14 @@ def test_module():
             break
     assert isinstance(first_line, int)
     write_back = []
-    dowhen.when(random, first_line).do(lambda: write_back.append(True))
-    random.randrange(10)
-    assert write_back == [True]
+    with dowhen.when(random, first_line).do(lambda: write_back.append(True)):
+        random.randrange(10)
+        assert write_back == [True]
+        write_back.clear()
+
+    with dowhen.when(random, f"+{first_line}").do(lambda: write_back.append(True)):
+        random.randrange(10)
+        assert write_back == [True]
 
 
 def test_class():
@@ -130,10 +135,15 @@ def test_class():
         def g(self, x):
             return x
 
-    dowhen.when(A, "return x").do("x = 1")
     a = A()
-    assert a.f(2) == 1
-    assert a.g(2) == 1
+
+    with dowhen.when(A, "return x").do("x = 1"):
+        assert a.f(2) == 1
+        assert a.g(2) == 1
+
+    with dowhen.when(A, "+2").do("x = 1"):
+        assert a.f(2) == 1
+        assert a.g(2) == 2
 
 
 def test_decorator():
@@ -252,16 +262,23 @@ def test_global_events():
 
     assert events == [0, 0, 0]
 
+    with pytest.raises(ValueError):
+        dowhen.when(None, "+1")
+
 
 def test_goto():
     def f():
         x = 0
-        assert False
+        if x == 0:
+            assert False
         x = 1
         return x
 
-    dowhen.when(f, "assert False").goto("x = 1")
-    assert f() == 1
+    with dowhen.when(f, "assert False").goto("x = 1"):
+        assert f() == 1
+
+    with dowhen.when(f, "assert False").do("x = 2").goto("-1"):
+        assert f() == 1
 
 
 def test_condition():
