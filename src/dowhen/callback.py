@@ -6,13 +6,13 @@ from __future__ import annotations
 
 import ctypes
 import inspect
-import re
 import sys
 import warnings
 from collections.abc import Callable
 from types import CodeType, FrameType, FunctionType, MethodType, ModuleType
 from typing import TYPE_CHECKING, Any
 
+from .types import IdentifierType
 from .util import call_in_frame, get_line_numbers
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -81,14 +81,27 @@ class Callback:
         # Changing frame.f_lineno is only allowed in trace functions so it's
         # impossible to get coverage for this function
         target = self.kwargs["target"]
-        line_numbers = get_line_numbers(frame.f_code, target)
-        if line_numbers is None:
-            raise ValueError(f"Could not determine line number for target: {target}")
-        elif len(line_numbers) > 1:
-            raise ValueError(
-                f"Multiple line numbers found for target '{target}': {line_numbers}"
+        if isinstance(target, int):
+            line_number = target
+        elif (
+            isinstance(target, str)
+            and (target.startswith("+") or target.startswith("-"))
+            and target[1:].isdigit()
+        ):
+            line_number = frame.f_lineno + int(target)
+        else:
+            line_numbers = get_line_numbers(frame.f_code, target).get(
+                frame.f_code, None
             )
-        line_number = line_numbers[0]
+            if line_numbers is None:
+                raise ValueError(
+                    f"Could not determine line number for target: {target}"
+                )
+            elif len(line_numbers) > 1:
+                raise ValueError(
+                    f"Multiple line numbers found for target '{target}': {line_numbers}"
+                )
+            line_number = line_numbers[0]
         with warnings.catch_warnings():
             # This gives a RuntimeWarning in Python 3.12
             warnings.simplefilter("ignore", RuntimeWarning)
@@ -123,7 +136,7 @@ class Callback:
     def when(
         self,
         entity: CodeType | FunctionType | MethodType | ModuleType | type | None,
-        *identifiers: str | int | re.Pattern | tuple,
+        *identifiers: IdentifierType | tuple[IdentifierType, ...],
         condition: str | Callable[..., bool | Any] | None = None,
         source_hash: str | None = None,
     ) -> "EventHandler":

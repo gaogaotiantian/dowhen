@@ -194,7 +194,3 @@ class Instrumenter:
                         sys.monitoring.set_local_events(
                             self.tool_id, code, events & ~removed_event
                         )
-
-
-def clear_all() -> None:
-    Instrumenter().clear_all()

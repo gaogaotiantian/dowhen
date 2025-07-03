@@ -12,10 +12,12 @@ from .util import do_pdb_test
 
 
 def test_enable_disable():
+    # This function can't be at the same line as f(x) in other files
+    # See gh-78
     def f(x):
         return x
 
-    handler = dowhen.do("x = 1").when(f, "return x")
+    handler = dowhen.do("print('hello');x = 1").when(f, "return x")
 
     assert f(2) == 1
     handler.disable()

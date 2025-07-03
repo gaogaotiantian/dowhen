@@ -5,8 +5,8 @@
 __version__ = "0.1.0"
 
 from .callback import bp, do, goto
-from .instrumenter import DISABLE, clear_all
+from .instrumenter import DISABLE
 from .trigger import when
-from .util import get_source_hash
+from .util import clear_all, get_source_hash
 
 __all__ = ["bp", "clear_all", "do", "get_source_hash", "goto", "when", "DISABLE"]

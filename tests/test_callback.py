@@ -199,12 +199,16 @@ def test_frame():
 def test_goto():
     def f():
         x = 0
-        assert False
+        if x == 0:
+            assert False
         x = 1
         return x
 
-    dowhen.goto("x = 1").when(f, "assert False")
-    assert f() == 1
+    with dowhen.goto("x = 1").when(f, "assert False"):
+        assert f() == 1
+
+    with dowhen.goto("+1").when(f, "assert False"):
+        assert f() == 1
 
 
 def test_bp():
