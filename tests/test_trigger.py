@@ -253,6 +253,23 @@ def test_global_events():
     assert events == [0, 0, 0]
 
 
+def test_global_events_with_relative_identifiers():
+    # Single relative identifier should raise ValueError
+    with pytest.raises(TypeError):
+        dowhen.when(None, "+1")
+
+    with pytest.raises(TypeError):
+        dowhen.when(None, "+5")
+
+    # Relative identifier in tuple should also raise ValueError
+    with pytest.raises(TypeError):
+        dowhen.when(None, ("some_code", "+2"))
+
+    # Multiple identifiers with one being relative should raise ValueError
+    with pytest.raises(TypeError):
+        dowhen.when(None, "some_code", "+3")
+
+
 def test_goto():
     def f():
         x = 0

@@ -124,6 +124,28 @@ class Trigger:
                     "The source hash does not match the entity's source code."
                 )
 
+        # Check for invalid combination of global events with relative line identifiers
+        # Relative identifiers like "+1" depend on a specific code context to calculate offsets,
+        # but global events apply across all code objects, making the behavior unpredictable.
+        if entity is None:
+            def is_relative_identifier(ident: str) -> None:
+                return (
+                    isinstance(ident, str)
+                    and ident.startswith("+")
+                    and ident[1:].isdigit()
+                )
+            err_msg = (
+                "Relative line identifier '{identifier}' cannot be used with global events (entity=None). "
+                "Relative identifiers are only valid for specific code objects."
+            )
+            for identifier in identifiers:
+                if is_relative_identifier(identifier):
+                    raise TypeError(err_msg.format(identifier=identifier))
+                elif isinstance(identifier, tuple):
+                    for sub_ident in identifier:
+                        if is_relative_identifier(sub_ident):
+                            raise TypeError(err_msg.format(identifier=sub_ident))
+
         events = []
 
         direct_code_objects, all_code_objects = cls._get_code_from_entity(entity)
