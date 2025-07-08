@@ -33,6 +33,9 @@ def get_line_numbers(
     except OSError:
         lines, start_line = [], code.co_firstlineno
 
+    # Cache the set of executable (instrumentable) line numbers for quick lookup
+    executable_lines: set[int] = {ln for (_, _, ln) in code.co_lines() if ln is not None}
+
     for ident in identifier:
         if isinstance(ident, int):
             line_numbers = {ident}
@@ -42,11 +45,28 @@ def get_line_numbers(
             elif isinstance(ident, str) or isinstance(ident, re.Pattern):
                 line_numbers = set()
                 for i, line in enumerate(lines):
-                    line = line.strip()
-                    if (isinstance(ident, str) and line.startswith(ident)) or (
-                        isinstance(ident, re.Pattern) and ident.match(line)
-                    ):
+                    stripped_line = line.strip()
+                    matched = False
+
+                    if isinstance(ident, str):
+                        if stripped_line.startswith(ident):
+                            matched = True
+                    elif isinstance(ident, re.Pattern):
+                        matched = bool(ident.match(stripped_line))
+
+                    if matched:
                         line_number = start_line + i
+                        if line_number not in executable_lines:
+                            j = i + 1
+                            while j < len(lines):
+                                prospective = start_line + j
+                                if prospective in executable_lines:
+                                    line_number = prospective
+                                    break
+                                j += 1
+                            else:
+                                # No executable line found after comment – skip
+                                continue
                         line_numbers.add(line_number)
             else:
                 raise TypeError(f"Unknown identifier type: {type(ident)}")
