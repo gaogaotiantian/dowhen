@@ -174,6 +174,32 @@ def test_decorator():
         assert f(0) == 42
 
 
+def test_comment():
+    def f(x):
+        # placeholder 1
+        x += 1
+        # placeholder 2
+        return x
+        # placeholder 3
+
+    target_line_number = f.__code__.co_firstlineno + 2
+
+    trigger = dowhen.when(f, "# placeholder 1")
+    assert trigger.events[0].event_type == "line"
+    assert trigger.events[0].event_data["line_number"] == target_line_number
+
+    dowhen.do("x *= 10").when(f, "# placeholder 1")
+    assert f(1) == 11
+    dowhen.clear_all()
+
+    dowhen.do("x *= 10").when(f, "# placeholder 2")
+    assert f(1) == 20
+    dowhen.clear_all()
+
+    with pytest.raises(ValueError):
+        dowhen.do("x *= 10").when(f, "# placeholder 3")
+
+
 def test_code_without_source():
     src = """def f(x):\n  return x\nf(0)"""
     code = compile(src, "<string>", "exec")
