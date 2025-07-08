@@ -3,5 +3,6 @@
 
 
 import re
+from typing import Literal
 
-IdentifierType = int | str | re.Pattern | None
+IdentifierType = int | str | Literal["<start>", "<return>"] | re.Pattern | None
